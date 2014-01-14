@@ -5,8 +5,15 @@ npm install
 node server
 ```
 
+Database
+============
+Data is found in `events.sqlite` in the root folder.
+
+
 Routes
 ============
+
+`GET /dev/fake` -- Adds a fake item to the db
 
 `GET /events`
 ```
@@ -24,6 +31,7 @@ Routes
 `{updated attributes}`
 
 `DELETE /events/:id`
+
 
 
 Deployment
