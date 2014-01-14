@@ -1,39 +1,33 @@
 module.exports = function(db) {
 
   var eden = require('node-eden');
+  var faker = require('Faker');
 
   return {
 
     // Use with caution
     dev: {
       fake: function(req, res) {
-        db.event
-          .create({
-            title: eden.word() + ' ' + eden.word() + ' ' + eden.word(),
-            description: 'lorem ipsum dolor sit amet',
-            address: Math.floor(Math.random() * 500) + eden.word() + ' st.',
-            city: eden.word() + 'ville',
-            country: eden.word() + 'land',
-            attendees: Math.floor(Math.random() * 100),
-            registerLink: 'http://webmaker.org',
-            organizer: eden.eve() + '@' + eden.word() + '.com',
-            organizerId: eden.eve() + Math.floor(Math.random() * 100),
-            featured: false
-          })
-          .save()
-          .success(function(data) {
-            res.json(data);
-          })
-          .error(function(err) {
-            res.statusCode = 500;
-            next(new Error('There was a problem finding all events.'));
-          });
+        res.json({
+          title: faker.Company.bs(),
+          description: faker.Lorem.paragraph(),
+          address: faker.Address.streetAddress(),
+          latitude: faker.Address.latitutde,
+          longitude: faker.Address.longitude,
+          city: faker.Address.city(),
+          beginDate: new Date(),
+          country: faker.Name.firstName() + 'land',
+          attendees: faker.Helpers.randomNumber(500),
+          registerLink: 'https://' + faker.Internet.domainName() + '/eventpage',
+          organizer: faker.Internet.email(),
+          organizerId: faker.Name.firstName() + faker.Helpers.randomNumber(100),
+          featured: false
+        });
       }
     },
 
     get: {
       all: function(req, res, next) {
-
         var limit = req.query.limit || 30;
 
         db.event
@@ -59,8 +53,16 @@ module.exports = function(db) {
     },
 
     post: function(req, res) {
-      console.log(req.body);
-      res.send('post');
+      db.event
+        .create(req.body)
+        .save()
+        .success(function(data) {
+          res.json(data);
+        })
+        .error(function(err) {
+          res.statusCode = 500;
+          next(new Error('There was a problem creating the event.'));
+        });
     },
     put: function(req, res) {
       var id = req.params.id;
