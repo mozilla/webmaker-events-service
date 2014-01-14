@@ -38,7 +38,7 @@ module.exports = function(db) {
     },
 
     get: {
-      all: function(req, res, next) {
+      all: function(req, res) {
         var limit = req.query.limit || 30;
 
         db.event
@@ -50,7 +50,7 @@ module.exports = function(db) {
           })
           .error(function(err) {
             res.statusCode = 500;
-            next(new Error('There was a problem finding all events.'));
+            res.json(err);
           });
       },
       id: function(req, res) {
@@ -67,26 +67,71 @@ module.exports = function(db) {
     post: function(req, res) {
       db.event
         .create(req.body)
-        .save()
         .success(function(data) {
           res.json(data);
         })
         .error(function(err) {
           res.statusCode = 500;
-          next(new Error('There was a problem creating the event.'));
+          res.json(err);
         });
     },
+
     put: function(req, res) {
       var id = req.params.id;
-      res.json({
-        response: 'put'
-      });
+      var updatedAttributes = req.body;
+
+      // First, find the event
+      db.find(id)
+        .success(function(eventInstance) {
+          if (eventInstance) {
+            eventInstance
+              .updateAttributes(updatedAttributes)
+              .success(function(data) {
+                res.json(data);
+              })
+              .error(function(err) {
+                res.statusCode = 500;
+                res.json(err);
+              });
+          } else {
+            res.statusCode = 400;
+            return res.json({
+              error: 'No event found for id ' + id
+            });
+          }
+        })
+        .error(function(err) {
+          res.statusCode = 500;
+          res.json(err);
+        });
     },
+
     delete: function(req, res) {
       var id = req.params.id;
-      res.json({
-        response: 'deleted'
-      });
+
+      db.find(id)
+        .success(function(eventInstance) {
+          if (eventInstance) {
+            eventInstance
+              .destroy()
+              .success(function(data) {
+                res.json(data);
+              })
+              .error(function(err) {
+                res.statusCode = 500;
+                res.json(err);
+              });
+          } else {
+            res.statusCode = 400;
+            return res.json({
+              error: 'No event found for id ' + id
+            });
+          }
+        })
+        .error(function(err) {
+          res.statusCode = 500;
+          res.json(err);
+        });
     }
   };
 

@@ -5,6 +5,27 @@ npm install
 node server
 ```
 
+Routes
+============
+
+`GET /events`
+```
+{
+  limit: {{a limit}}
+}
+```
+
+`GET /events/:id`
+
+`POST /events`
+`{event object}`
+
+`PUT /events/:id`
+`{updated attributes}`
+
+`DELETE /events/:id`
+
+
 Deployment
 ===========
 
