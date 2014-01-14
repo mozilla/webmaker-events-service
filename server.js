@@ -17,9 +17,14 @@ app.use(express.compress());
 app.use(express.json());
 app.use(express.urlencoded());
 
+// DON'T DO THIS IN PROD
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE'),
+  next();
+});
+
 app.use(app.router);
-
-
 routes(app, db);
 
 app.listen(env.get('PORT'), function () {
