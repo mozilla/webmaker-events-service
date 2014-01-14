@@ -7,13 +7,14 @@ module.exports = function(db) {
 
     // Use with caution
     dev: {
-      fake: function(req, res) {
-        res.json({
+      fake: function(req, res, next) {
+
+        var fakeEvent = {
           title: faker.Company.bs(),
           description: faker.Lorem.paragraph(),
           address: faker.Address.streetAddress(),
-          latitude: faker.Address.latitutde,
-          longitude: faker.Address.longitude,
+          latitude: faker.Helpers.randomNumber(-90.0, 90.0),
+          longitude: faker.Helpers.randomNumber(-180.0, 180.0),
           city: faker.Address.city(),
           beginDate: new Date(),
           country: faker.Name.firstName() + 'land',
@@ -22,7 +23,17 @@ module.exports = function(db) {
           organizer: faker.Internet.email(),
           organizerId: faker.Name.firstName() + faker.Helpers.randomNumber(100),
           featured: false
-        });
+        };
+
+        db.event
+          .create(fakeEvent)
+          .success(function(data) {
+            res.json(data);
+          })
+          .error(function(err) {
+            res.statusCode = 500;
+            res.json(err);
+          });
       }
     },
 
@@ -31,8 +42,9 @@ module.exports = function(db) {
         var limit = req.query.limit || 30;
 
         db.event
-          .findAll()
-          .limit(limit)
+          .findAll({
+            limit: limit
+          })
           .success(function(data) {
             res.json(data);
           })

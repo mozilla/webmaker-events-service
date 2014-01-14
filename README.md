@@ -2,22 +2,15 @@ Development
 ============
 ```
 npm install
-cp env.dist .env
-grunt
-node app // or, grunt nodemon
+node server
 ```
 
 Deployment
 ===========
 
-Use the nodejs-grunt buildpack:
 ```
-heroku create webmaker-events-service --buildpack https://github.com/mbuchetics/heroku-buildpack-nodejs-grunt
+heroku create webmaker-events-service
 git push heroku master
-```
-You can always set the buildpack config variable separately:
-```
-heroku config:add BUILDPACK_URL=https://github.com/mbuchetics/heroku-buildpack-nodejs-grunt.git
 ```
 
 Configuration
