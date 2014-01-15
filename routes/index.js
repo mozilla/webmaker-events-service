@@ -7,6 +7,7 @@ module.exports = function(app, db) {
   app.put('/events/:id', db.put);
   app.delete('/events/:id', db.delete);
 
+  // Take this out later
   app.get('/dev/fake', db.dev.fake);
 
 };
