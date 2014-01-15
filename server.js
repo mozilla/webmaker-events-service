@@ -4,8 +4,8 @@ var routes = require('./routes');
 
 Habitat.load();
 
-var app = express();
 var env = new Habitat();
+var app = express();
 var db = require('./models')(
   env.get('DB_NAME'),
   env.get('DB_USER'),

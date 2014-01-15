@@ -6,6 +6,6 @@
     "habitat": "1.1.0",
     "sequelize": "~2.0.0-dev1",
     "sqlite3": "~2.2.0",
-    "node-eden": "0.0.3"
+    "Faker": "~0.5.11"
   }
 }
