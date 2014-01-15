@@ -1,6 +1,5 @@
 module.exports = function(db) {
 
-  var eden = require('node-eden');
   var faker = require('Faker');
 
   return {
