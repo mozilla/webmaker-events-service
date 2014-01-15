@@ -1,40 +1,8 @@
 module.exports = function(db) {
 
-  var faker = require('Faker');
+  var faker = new require('../util/faker')();
 
   return {
-
-    // Use with caution
-    dev: {
-      fake: function(req, res, next) {
-
-        var fakeEvent = {
-          title: faker.Company.bs(),
-          description: faker.Lorem.paragraph(),
-          address: faker.Address.streetAddress(),
-          latitude: faker.Helpers.randomNumber(-90.0, 90.0),
-          longitude: faker.Helpers.randomNumber(-180.0, 180.0),
-          city: faker.Address.city(),
-          beginDate: new Date(),
-          country: faker.Name.firstName() + 'land',
-          attendees: faker.Helpers.randomNumber(500),
-          registerLink: 'https://' + faker.Internet.domainName() + '/eventpage',
-          organizer: faker.Internet.email(),
-          organizerId: faker.Name.firstName() + faker.Helpers.randomNumber(100),
-          featured: false
-        };
-
-        db.event
-          .create(fakeEvent)
-          .success(function(data) {
-            res.json(data);
-          })
-          .error(function(err) {
-            res.statusCode = 500;
-            res.json(err);
-          });
-      }
-    },
 
     get: {
       all: function(req, res) {
@@ -80,7 +48,8 @@ module.exports = function(db) {
       var updatedAttributes = req.body;
 
       // First, find the event
-      db.find(id)
+      db.event
+        .find(id)
         .success(function(eventInstance) {
           if (eventInstance) {
             eventInstance
@@ -93,7 +62,7 @@ module.exports = function(db) {
                 res.json(err);
               });
           } else {
-            res.statusCode = 400;
+            res.statusCode = 404;
             return res.json({
               error: 'No event found for id ' + id
             });
@@ -108,7 +77,8 @@ module.exports = function(db) {
     delete: function(req, res) {
       var id = req.params.id;
 
-      db.find(id)
+      db.event
+        .find(id)
         .success(function(eventInstance) {
           if (eventInstance) {
             eventInstance
@@ -121,7 +91,7 @@ module.exports = function(db) {
                 res.json(err);
               });
           } else {
-            res.statusCode = 400;
+            res.statusCode = 404;
             return res.json({
               error: 'No event found for id ' + id
             });
