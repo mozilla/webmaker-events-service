@@ -25,7 +25,7 @@ Configuration is stored in `.env`.
 <tr>
   <td><code>DEV</code></td>
   <td><code>false</code></td>
-  <td>If <code>true</code>, fake database generation methods will be exposed as `GET` routes.</td>
+  <td>If <code>true</code>, fake database generation methods will be exposed as GET routes.</td>
 </tr>
 <tr>
   <td><code>DB_NAME</code></td>
@@ -48,31 +48,58 @@ Configuration is stored in `.env`.
 
 Database
 ============
-The database currently uses squlite. The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
+The database currently uses sqlite. The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
 
 
 Routes
 ============
 
-`GET /dev/fake` -- Adds a fake item to the db
-
-`GET /events`
-```
-{
-  limit: {{a limit}}
-}
-```
-
-`GET /events/:id`
-
-`POST /events`
-`{event object}`
-
-`PUT /events/:id`
-`{updated attributes}`
-
-`DELETE /events/:id`
-
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Path</th>
+      <th>Query/Body</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tr>
+    <td><code>GET</code></td>
+    <td>/dev/fake</td>
+    <td>amount: <code>{{number of events}}</code></td>
+    <td>Adds a fake item to the db.</td>
+  </tr>
+  <tr>
+    <td><code>GET</code></td>
+    <td>/events</td>
+    <td>limit: <code>{{number of events || 30}}</code></td>
+    <td>Returns an array of events.</td>
+  </tr>
+  <tr>
+    <td><code>GET</code></td>
+    <td>/events/:id</td>
+    <td></td>
+    <td>Returns a single event object where the id matches <code>:id</code></td>
+  </tr>
+  <tr>
+    <td><code>POST</code></td>
+    <td>/events/</td>
+    <td><code>{{event object}}</code></td>
+    <td>Creates a new event</td>
+  </tr>
+  <tr>
+    <td><code>PUT</code></td>
+    <td>/events/:id</td>
+    <td><code>{{event object}}</code></td>
+    <td>Updates an event with id <code>{{:id}}</code> with the attributes specified in the body of the request.</td>
+  </tr>
+  <tr>
+    <td><code>DELETE</code></td>
+    <td>/events/:id</td>
+    <td></td>
+    <td>Deletes an event with id <code>{{:id}}</code>.</td>
+  </tr>
+</table>
 
 
 Deployment
