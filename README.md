@@ -2,12 +2,53 @@ Development
 ============
 ```
 npm install
+cp .env-dist .env // For configuration
 node server
 ```
 
+Configuration
+============
+
+Configuration is stored in `.env`.
+
+<table>
+<tr>
+  <td>`PORT`</td>
+  <td>`1989`</td>
+  <td>The port the server runs on.</td>
+</tr>
+<tr>
+  <td>`STORAGE`</td>
+  <td>`events.sqlite`</td>
+  <td>The name and location of the sqlite file.</td>
+</tr>
+<tr>
+  <td>`DEV`</td>
+  <td>`false`</td>
+  <td>If `true`, fake database generation methods will be exposed as `GET` routes.</td>
+</tr>
+<tr>
+  <td>`DB_NAME`</td>
+  <td>`undefined`</td>
+  <td>Database name</td>
+</tr>
+<tr>
+  <td>`DB_USER`</td>
+  <td>`undefined`</td>
+  <td>Database user</td>
+</tr>
+<tr>
+  <td>`DB_PASSWORD`</td>
+  <td>`undefined`</td>
+  <td>Database password</td>
+</tr>
+
+
+
+
 Database
 ============
-Data is found in `events.sqlite` in the root folder.
+The database currently uses squlite. The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
 
 
 Routes
