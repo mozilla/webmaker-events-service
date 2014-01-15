@@ -7,8 +7,8 @@ Habitat.load();
 var env = new Habitat();
 
 // Heroku clearbase support
-if (!env.get('DB_CONNECTIONSTRING') && env.get('CLEARDB_DATABASE_URL')) {
-  env.set('DB_CONNECTIONSTRING', env.get('CLEARDB_DATABASE_URL'));
+if (!env.get('DB_CONNECTIONSTRING') && env.get('cleardbDatabaseUrl')) {
+  env.set('DB_CONNECTIONSTRING', env.get('cleardbDatabaseUrl').replace('?reconnect=true', ''));
 }
 
 var db = require('./models')(env.get('db'));
