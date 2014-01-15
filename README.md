@@ -23,11 +23,6 @@ Configuration is stored in `.env`.
   <td>The port the server runs on.</td>
 </tr>
 <tr>
-  <td><code>DIALECT</code></td>
-  <td><code>sqlite</code></td>
-  <td>Can be sqlite or mysql</td>
-</tr>
-<tr>
   <td><code>STORAGE</code></td>
   <td><code>events.sqlite</code></td>
   <td>If using sqlite, the name and location of the sqlite file.</td>
@@ -36,6 +31,11 @@ Configuration is stored in `.env`.
   <td><code>DEV</code></td>
   <td><code>false</code></td>
   <td>If <code>true</code>, fake database generation methods will be exposed as GET routes.</td>
+</tr>
+<tr>
+  <td><code>DB_DIALECT</code></td>
+  <td><code>sqlite</code></td>
+  <td>Can be sqlite or mysql</td>
 </tr>
 <tr>
   <td><code>DB_CONNECTIONSTRING</code></td>
