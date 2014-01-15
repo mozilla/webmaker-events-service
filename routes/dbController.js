@@ -1,7 +1,5 @@
 module.exports = function(db) {
 
-  var faker = new require('../util/faker')();
-
   return {
 
     get: {
