@@ -13,33 +13,33 @@ Configuration is stored in `.env`.
 
 <table>
 <tr>
-  <td>`PORT`</td>
-  <td>`1989`</td>
+  <td><code>PORT</code></td>
+  <td><code>1989</code></td>
   <td>The port the server runs on.</td>
 </tr>
 <tr>
-  <td>`STORAGE`</td>
-  <td>`events.sqlite`</td>
+  <td><code>STORAGE</code></td>
+  <td><code>events.sqlite</code></td>
   <td>The name and location of the sqlite file.</td>
 </tr>
 <tr>
-  <td>`DEV`</td>
-  <td>`false`</td>
-  <td>If `true`, fake database generation methods will be exposed as `GET` routes.</td>
+  <td><code>DEV</code></td>
+  <td><code>false</code></td>
+  <td>If <code>true</code>, fake database generation methods will be exposed as `GET` routes.</td>
 </tr>
 <tr>
-  <td>`DB_NAME`</td>
-  <td>`undefined`</td>
+  <td><code>DB_NAME</code></td>
+  <td><code>undefined</code></td>
   <td>Database name</td>
 </tr>
 <tr>
-  <td>`DB_USER`</td>
-  <td>`undefined`</td>
+  <td><code>DB_USER</code></td>
+  <td><code>undefined</code></td>
   <td>Database user</td>
 </tr>
 <tr>
-  <td>`DB_PASSWORD`</td>
-  <td>`undefined`</td>
+  <td><code>DB_PASSWORD</code></td>
+  <td><code>undefined</code></td>
   <td>Database password</td>
 </tr>
 </table>
