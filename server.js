@@ -2,13 +2,16 @@ var Habitat = require('habitat');
 
 Habitat.load();
 
+
 // Configuration
 var env = new Habitat();
-var db = require('./models')({
-  db: env.get('DB_NAME'),
-  user: env.get('DB_USER'),
-  password: env.get('DB_PASSWORD')
-});
+
+// Heroku clearbase support
+if (!env.get('DB_CONNECTIONSTRING') && env.get('CLEARDB_DATABASE_URL')) {
+  env.set('DB_CONNECTIONSTRING', env.get('CLEARDB_DATABASE_URL'));
+}
+
+var db = require('./models')(env.get('db'));
 var app = require('./config')(env, db);
 
 // Add routes

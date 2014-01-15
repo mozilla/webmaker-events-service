@@ -2,12 +2,26 @@ var Sequelize = require('sequelize');
 
 module.exports = function(options) {
 
-  // Init db with sqlite
-  // TODO: allow mysql or sqlitse
-  var sequelize = new Sequelize(options.db, options.user, options.password, {
-    dialect: 'sqlite',
-    storage: options.storage || 'events.sqlite',
-  });
+  var sequelize;
+
+  // MySQL with connection string
+  if (options.connectionstring) {
+    sequelize = new Sequelize(options.connectionstring);
+
+  // MySQL with settings
+  } else if (options.dialect == 'mysql') {
+    sequelize = new Sequelize(options.db, options.user, options.password, {
+      host: options.host || 'localhost',
+      port: options.port || 3306
+    });
+
+  // Sqlite (Default)
+  } else {
+    sequelize = new Sequelize(options.db, options.user, options.password, {
+      dialect: 'sqlite',
+      storage: options.storage || 'events.sqlite'
+    });
+  }
 
   // Import models
   var Event = sequelize.import(__dirname + '/event.js');

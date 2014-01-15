@@ -110,6 +110,11 @@ heroku create webmaker-events-service
 git push heroku master
 ```
 
+To add a database:
+``
+heroku addons:add cleardb
+``
+
 Configuration
 =============
 
