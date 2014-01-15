@@ -65,6 +65,29 @@ Database
 ============
 The database currently uses sqlite. The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
 
+### Example event object
+```
+{
+  "title": "My event",
+  "description": "Blah blah blah...",
+  "address": "15 Apple St.",
+  "latitude": -4,
+  "longitude": 101,
+  "city": "Toronto",
+  "country": "Canada",
+  "attendees": 474,
+  "beginDate": "2014-01-15T22:16:43.000Z",
+  "endDate": null,
+  "beginTime": null,
+  "endTime": null,
+  "registerLink": "https://something.com/register",
+  "picture": null,
+  "organizer": "misael@antonetta.tv",
+  "organizerId": "Laney8",
+  "featured": false,
+  }
+```
+Responses also contain `id`, `createdAt`, and `updatedAt`, which are added/updated automatically.
 
 Routes
 ============
