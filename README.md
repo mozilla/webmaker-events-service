@@ -13,19 +13,34 @@ Configuration is stored in `.env`.
 
 <table>
 <tr>
+  <td>Option</td>
+  <td>Default</td>
+  <td>Description</td>
+</tr>
+<tr>
   <td><code>PORT</code></td>
   <td><code>1989</code></td>
   <td>The port the server runs on.</td>
 </tr>
 <tr>
+  <td><code>DIALECT</code></td>
+  <td><code>sqlite</code></td>
+  <td>Can be sqlite or mysql</td>
+</tr>
+<tr>
   <td><code>STORAGE</code></td>
   <td><code>events.sqlite</code></td>
-  <td>The name and location of the sqlite file.</td>
+  <td>If using sqlite, the name and location of the sqlite file.</td>
 </tr>
 <tr>
   <td><code>DEV</code></td>
   <td><code>false</code></td>
   <td>If <code>true</code>, fake database generation methods will be exposed as GET routes.</td>
+</tr>
+<tr>
+  <td><code>DB_CONNECTIONSTRING</code></td>
+  <td><code>undefined</code></td>
+  <td>If defined, sequelize will use this to configure databse, username, password, etc.</td>
 </tr>
 <tr>
   <td><code>DB_NAME</code></td>
