@@ -6,7 +6,8 @@
     "habitat": "1.1.0",
     "sequelize": "~2.0.0-dev1",
     "sqlite3": "~2.2.0",
-    "Faker": "~0.5.11"
+    "Faker": "~0.5.11",
+    "mysql": "~2.0.0"
   },
   "devDependencies": {
     "should": "~2.1.1",
