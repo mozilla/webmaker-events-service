@@ -35,6 +35,8 @@ describe('faker', function() {
 
 });
 
+// TODO: Test mysql, connection string options for models
+
 describe('app', function() {
 
   // TODO: Re-run the server every time with a fresh db so no state problems occur

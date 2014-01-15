@@ -2,6 +2,8 @@ var Sequelize = require('sequelize');
 
 module.exports = function(options) {
 
+  options = options || {};
+
   var sequelize;
 
   // MySQL with connection string
@@ -10,14 +12,14 @@ module.exports = function(options) {
 
   // MySQL with settings
   } else if (options.dialect == 'mysql') {
-    sequelize = new Sequelize(options.db, options.user, options.password, {
+    sequelize = new Sequelize(options.database, options.user, options.password, {
       host: options.host || 'localhost',
       port: options.port || 3306
     });
 
   // Sqlite (Default)
   } else {
-    sequelize = new Sequelize(options.db, options.user, options.password, {
+    sequelize = new Sequelize(options.database, options.user, options.password, {
       dialect: 'sqlite',
       storage: options.storage || 'events.sqlite'
     });
