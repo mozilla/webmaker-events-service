@@ -1,12 +1,12 @@
 var Sequelize = require('sequelize');
 
-module.exports = function(database, user, password) {
+module.exports = function(options) {
 
   // Init db with sqlite
   // TODO: allow mysql or sqlitse
-  var sequelize = new Sequelize(database, user, password, {
+  var sequelize = new Sequelize(options.db, options.user, options.password, {
     dialect: 'sqlite',
-    storage: 'events.sqlite',
+    storage: options.storage || 'events.sqlite',
   });
 
   // Import models
