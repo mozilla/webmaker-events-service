@@ -1,7 +1,9 @@
 var Habitat = require('habitat');
 
+Habitat.load();
+
 // Configuration
-var env = Habitat.load();
+var env = new Habitat();
 var db = require('./models')({
   db: env.get('DB_NAME'),
   user: env.get('DB_USER'),

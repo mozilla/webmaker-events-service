@@ -39,7 +39,8 @@ describe('app', function() {
 
   // TODO: Re-run the server every time with a fresh db so no state problems occur
   // Server and db config
-  var env = Habitat.load('.env-test');
+  Habitat.load('.env-test');
+  var env = new Habitat();
   var db = require('../models')({
     db: env.get('DB_NAME'),
     user: env.get('DB_USER'),
