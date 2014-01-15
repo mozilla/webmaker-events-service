@@ -6,16 +6,17 @@ module.exports = function(options) {
 
   var sequelize;
 
-  // MySQL with connection string
-  if (options.connectionstring) {
-    sequelize = new Sequelize(options.connectionstring);
-
+  
   // MySQL with settings
-  } else if (options.dialect == 'mysql') {
+  if (options.dialect == 'mysql' && options.databse) {
     sequelize = new Sequelize(options.database, options.user, options.password, {
       host: options.host || 'localhost',
       port: options.port || 3306
     });
+
+  // MySQL with connection string
+  } else if (options.connectionstring) {
+    sequelize = new Sequelize(options.connectionstring);
 
   // Sqlite (Default)
   } else {

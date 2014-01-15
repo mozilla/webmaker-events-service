@@ -59,11 +59,9 @@ Configuration is stored in `.env`.
 </tr>
 </table>
 
+##Database
 
-
-Database
-============
-The database currently uses sqlite. The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
+The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
 
 ### Example event object
 ```
@@ -85,7 +83,7 @@ The database currently uses sqlite. The default location is `events.sqlite` in t
   "organizer": "misael@antonetta.tv",
   "organizerId": "Laney8",
   "featured": false,
-  }
+}
 ```
 Responses also contain `id`, `createdAt`, and `updatedAt`, which are added/updated automatically.
 
@@ -140,7 +138,7 @@ Routes
 </table>
 
 
-Deployment
+## Deployment
 ===========
 
 ```
