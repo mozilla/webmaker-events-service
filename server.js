@@ -27,6 +27,6 @@ app.use(function(req, res, next) {
 app.use(app.router);
 routes(app, db);
 
-app.listen(env.get('PORT'), function () {
-  console.log('Now listening on %d', env.get('PORT'));
+app.listen(env.get('PORT') || 1989, function () {
+  console.log('Now listening on %d', env.get('PORT') || 1989);
 });
