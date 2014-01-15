@@ -37,6 +37,7 @@ describe('faker', function() {
 
 describe('app', function() {
 
+  // TODO: Re-run the server every time with a fresh db so no state problems occur
   // Server and db config
   var env = Habitat.load('.env-test');
   var db = require('../models')({
