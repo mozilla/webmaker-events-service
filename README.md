@@ -91,13 +91,13 @@ Routes
     <td><code>PUT</code></td>
     <td>/events/:id</td>
     <td><code>{{event object}}</code></td>
-    <td>Updates an event with id <code>{{:id}}</code> with the attributes specified in the body of the request.</td>
+    <td>Updates an event with id <code>:id</code> with the attributes specified in the body of the request.</td>
   </tr>
   <tr>
     <td><code>DELETE</code></td>
     <td>/events/:id</td>
     <td></td>
-    <td>Deletes an event with id <code>{{:id}}</code>.</td>
+    <td>Deletes an event with id <code>:id</code>.</td>
   </tr>
 </table>
 
