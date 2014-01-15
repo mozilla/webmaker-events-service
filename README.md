@@ -42,7 +42,7 @@ Configuration is stored in `.env`.
   <td>`undefined`</td>
   <td>Database password</td>
 </tr>
-
+</table>
 
 
 
