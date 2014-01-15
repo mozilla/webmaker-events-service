@@ -6,9 +6,8 @@ module.exports = function(options) {
 
   var sequelize;
 
-  
   // MySQL with settings
-  if (options.dialect == 'mysql' && options.databse) {
+  if (options.dialect == 'mysql' && options.database) {
     sequelize = new Sequelize(options.database, options.user, options.password, {
       host: options.host || 'localhost',
       port: options.port || 3306
