@@ -64,7 +64,7 @@ Configuration is stored in `.env`.
 </tr>
 </table>
 
-##Database
+## Database
 
 The default location is `events.sqlite` in the root folder, but it can be configured by setting `STORAGE` in your `.env`
 
@@ -91,6 +91,13 @@ The default location is `events.sqlite` in the root folder, but it can be config
 }
 ```
 Responses also contain `id`, `createdAt`, and `updatedAt`, which are added/updated automatically.
+
+### Existing database issues
+
+For old data, that is data created from the previous events system,
+
+* `city` and `country` are null in all cases
+* `beginDate` `endDate` `beginTime` `endTime` contain redundancies, where times are just `1899-12-31` + time and dates are date + `00:00:00`
 
 Routes
 ============
@@ -144,7 +151,7 @@ Routes
 
 
 ## Deployment
-===========
+
 
 ```
 heroku create webmaker-events-service
@@ -156,8 +163,7 @@ To add a database:
 heroku addons:add cleardb
 ``
 
-Configuration
-=============
+### Heroku Configuration
 
 If you don't already have the Heroku config plugin installed, do it now:
 
