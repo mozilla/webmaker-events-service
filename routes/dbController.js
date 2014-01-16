@@ -5,10 +5,17 @@ module.exports = function(db) {
     get: {
       all: function(req, res) {
         var limit = req.query.limit || 30;
+        var order = req.query.order || 'beginDate ASC';
 
         db.event
           .findAll({
-            limit: limit
+            limit: limit,
+            order: order,
+            where: {
+              beginDate: {
+                gte: new Date()
+              }
+            }
           })
           .success(function(data) {
             res.json(data);

@@ -113,15 +113,12 @@ Routes
   </thead>
   <tr>
     <td><code>GET</code></td>
-    <td>/dev/fake</td>
-    <td>amount: <code>{{number of events}}</code></td>
-    <td>Adds a fake item to the db.</td>
-  </tr>
-  <tr>
-    <td><code>GET</code></td>
     <td>/events</td>
-    <td>limit: <code>{{number of events || 30}}</code></td>
-    <td>Returns an array of events.</td>
+    <td>
+      limit: <code>{{number of events || 30}}</code>
+      order: <code>{{field [ASC/DESC] || 'beginDate ASC'}}</code>
+    </td>
+    <td>Returns an array of events in the future.</td>
   </tr>
   <tr>
     <td><code>GET</code></td>
@@ -146,6 +143,12 @@ Routes
     <td>/events/:id</td>
     <td></td>
     <td>Deletes an event with id <code>:id</code>.</td>
+  </tr>
+  <tr>
+    <td><code>GET</code></td>
+    <td>/dev/fake</td>
+    <td>amount: <code>{{number of events}}</code></td>
+    <td>ON DEV MODE ONLY: Adds a fake item to the db.</td>
   </tr>
 </table>
 
