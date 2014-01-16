@@ -9,8 +9,11 @@ module.exports = function(options) {
   // MySQL with settings
   if (options.dialect == 'mysql' && options.database) {
     sequelize = new Sequelize(options.database, options.user, options.password, {
-      host: options.host || 'localhost',
-      port: options.port || 3306
+      host: options.host  || 'localhost',
+      port: options.port || 3306,
+      dialectOptions: {
+        'SSL_VERIFY_SERVER_CERT': options.cert
+      }
     });
 
   // MySQL with connection string
