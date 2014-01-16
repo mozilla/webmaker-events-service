@@ -43,7 +43,7 @@ Configuration is stored in `.env`.
   <td>If defined, sequelize will use this to configure databse, username, password, etc.</td>
 </tr>
 <tr>
-  <td><code>DB_NAME</code></td>
+  <td><code>DB_DATABASE</code></td>
   <td><code>undefined</code></td>
   <td>Database name</td>
 </tr>
@@ -56,6 +56,11 @@ Configuration is stored in `.env`.
   <td><code>DB_PASSWORD</code></td>
   <td><code>undefined</code></td>
   <td>Database password</td>
+</tr>
+<tr>
+  <td><code>DB_CERT</code></td>
+  <td><code>undefined</code></td>
+  <td>Path to Amazon RDS CA certificate</td>
 </tr>
 </table>
 
