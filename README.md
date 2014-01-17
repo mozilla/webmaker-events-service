@@ -170,7 +170,7 @@ AUTHORIZATION: 'Bearer {{your token}}'
   </tr>
   <tr>
     <td><code>POST</code></td>
-    <td>/events/</td>
+    <td>/events</td>
     <td><code>{{event object}}</code></td>
     <td>Persona</td>
     <td>Creates a new event</td>
