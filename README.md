@@ -33,6 +33,11 @@ Configuration is stored in `.env`.
   <td>If <code>true</code>, fake database generation methods will be exposed as GET routes.</td>
 </tr>
 <tr>
+  <td><code>SECRET</code></td>
+  <td><code>secretsauce</code></td>
+  <td>The secret key for signing JWT tokens.</td>
+</tr>
+<tr>
   <td><code>DB_DIALECT</code></td>
   <td><code>sqlite</code></td>
   <td>Can be sqlite or mysql</td>
