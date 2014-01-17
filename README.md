@@ -99,8 +99,42 @@ For old data, that is data created from the previous events system,
 * `city` and `country` are null in all cases
 * `beginDate` `endDate` `beginTime` `endTime` contain redundancies, where times are just `1899-12-31` + time and dates are date + `00:00:00`
 
-Routes
-============
+## Authentication
+
+Protected routes must include a JWT token. To obtain a token, the client must POST an `audience` and valid persona `assertion` to the `/auth` route on this server.
+
+Tokens expire after 5 hours.
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Path</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+  </thead>
+  <tr>
+    <td><code>POST</code></td>
+    <td>/auth</td>
+    <td>
+      audience: <code>{{ The audience associated with your persona token, e.g. http://localhost:8888 }}</code>
+      assertion: <code>{{ persona token, obtained from navigator.id.request }}</code>
+    </td>
+    <td>
+      email: {{ verified persona email }},
+      token: {{ token for protected routes }}
+    </td>
+  </tr>
+</table>
+
+## Routes
+
+For protected routes, make sure you include the following header with your request:
+
+```
+AUTHORIZATION: 'Bearer {{your token}}'
+```
 
 <table>
   <thead>
@@ -108,6 +142,7 @@ Routes
       <th>Method</th>
       <th>Path</th>
       <th>Query/Body</th>
+      <th>Authentication required</th>
       <th>Description</th>
     </tr>
   </thead>
@@ -118,37 +153,43 @@ Routes
       limit: <code>{{number of events || 30}}</code>
       order: <code>{{field [ASC/DESC] || 'beginDate ASC'}}</code>
     </td>
+    <td>No</td>
     <td>Returns an array of events in the future.</td>
   </tr>
   <tr>
     <td><code>GET</code></td>
     <td>/events/:id</td>
     <td></td>
+    <td>No</td>
     <td>Returns a single event object where the id matches <code>:id</code></td>
   </tr>
   <tr>
     <td><code>POST</code></td>
     <td>/events/</td>
     <td><code>{{event object}}</code></td>
+    <td>Persona</td>
     <td>Creates a new event</td>
   </tr>
   <tr>
     <td><code>PUT</code></td>
     <td>/events/:id</td>
     <td><code>{{event object}}</code></td>
+    <td>Persona</td>
     <td>Updates an event with id <code>:id</code> with the attributes specified in the body of the request.</td>
   </tr>
   <tr>
     <td><code>DELETE</code></td>
     <td>/events/:id</td>
     <td></td>
+    <td>Persona</td>
     <td>Deletes an event with id <code>:id</code>.</td>
   </tr>
   <tr>
     <td><code>GET</code></td>
     <td>/dev/fake</td>
     <td>amount: <code>{{number of events}}</code></td>
-    <td>ON DEV MODE ONLY: Adds a fake item to the db.</td>
+    <td>DEV=true on server config</td>
+    <td>Adds a fake item to the db.</td>
   </tr>
 </table>
 
