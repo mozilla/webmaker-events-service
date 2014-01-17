@@ -123,12 +123,13 @@ Tokens expire after 5 hours.
     <td><code>POST</code></td>
     <td>/auth</td>
     <td>
-      audience: <code>{{ The audience associated with your persona token, e.g. http://localhost:8888 }}</code>
-      assertion: <code>{{ persona token, obtained from navigator.id.request }}</code>
+      audience: {{ audience of persona token}}
+      assertion: {{ persona token, obtained from navigator.id.request }}
     </td>
     <td>
       email: {{ verified persona email }},
       token: {{ token for protected routes }}
+      admin: {{ true | false }}
     </td>
   </tr>
 </table>
@@ -155,8 +156,8 @@ AUTHORIZATION: 'Bearer {{your token}}'
     <td><code>GET</code></td>
     <td>/events</td>
     <td>
-      limit: <code>{{number of events || 30}}</code>
-      order: <code>{{field [ASC/DESC] || 'beginDate ASC'}}</code>
+      limit: {{number of events || 30}}
+      order: {{field [ASC/DESC] || 'beginDate ASC'}}
     </td>
     <td>No</td>
     <td>Returns an array of events in the future.</td>
