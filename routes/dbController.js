@@ -5,7 +5,7 @@ module.exports = function(db) {
     get: {
       all: function(req, res) {
         var limit = req.query.limit || 30;
-        var order = req.query.order || 'beginDate ASC';
+        var order = req.query.order || 'beginDate';
 
         db.event
           .findAll({
@@ -37,14 +37,22 @@ module.exports = function(db) {
     },
 
     post: function(req, res) {
+
+      // Authentication
+      if (!req.body) {
+        return res.send(401, 'You may not create an empty event');
+      }
+      if (req.body.email !== req.email) {
+        return res.send(403, 'You must authorize this event with a persona-verified email');
+      }
+
       db.event
         .create(req.body)
         .success(function(data) {
           res.json(data);
         })
         .error(function(err) {
-          res.statusCode = 500;
-          res.json(err);
+          res.send(500, err);
         });
     },
 
@@ -56,15 +64,19 @@ module.exports = function(db) {
       db.event
         .find(id)
         .success(function(eventInstance) {
+
           if (eventInstance) {
+            // Authentication
+            if (!req.admin || !eventInstance.organizer === req.email) {
+              return res.send(403, 'You are not authorized to edit this event');
+            }
             eventInstance
               .updateAttributes(updatedAttributes)
               .success(function(data) {
                 res.json(data);
               })
               .error(function(err) {
-                res.statusCode = 500;
-                res.json(err);
+                res.send(500, err);
               });
           } else {
             res.statusCode = 404;
@@ -74,8 +86,7 @@ module.exports = function(db) {
           }
         })
         .error(function(err) {
-          res.statusCode = 500;
-          res.json(err);
+          res.send(500, err);
         });
     },
 
@@ -86,6 +97,10 @@ module.exports = function(db) {
         .find(id)
         .success(function(eventInstance) {
           if (eventInstance) {
+            // Authentication
+            if (!req.admin || !eventInstance.organizer === req.email) {
+              return res.send(403, 'You are not authorized to edit this event');
+            }
             eventInstance
               .destroy()
               .success(function(data) {
@@ -96,15 +111,11 @@ module.exports = function(db) {
                 res.json(err);
               });
           } else {
-            res.statusCode = 404;
-            return res.json({
-              error: 'No event found for id ' + id
-            });
+            return res.send(404, 'No event found for id ' + id);
           }
         })
         .error(function(err) {
-          res.statusCode = 500;
-          res.json(err);
+          res.send(500, err);
         });
     }
   };

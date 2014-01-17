@@ -7,7 +7,8 @@
     "sequelize": "~2.0.0-dev1",
     "sqlite3": "~2.2.0",
     "Faker": "~0.5.11",
-    "mysql": "~2.0.0"
+    "mysql": "~2.0.0",
+    "jsonwebtoken": "~0.1.0"
   },
   "devDependencies": {
     "should": "~2.1.1",
