@@ -29,9 +29,10 @@ module.exports = function(env) {
           return res.send(401, 'Error verifying persona: ' + err);
         }
 
-        // TODO: Add admin, other user settings
+        // TODO: Add admin properly
         var userProfile = {
-          email: email
+          email: email,
+          admin: env.get('dev')
         };
 
         var token = jwt.sign(userProfile, env.get('secret'), {
