@@ -1,13 +1,20 @@
-Development
-============
+# Webmaker Events Service
+
+This is a REST api service for webmaker events using Persona to authenticate requests.
+A live demo can be found at `http://webmaker-events-service.herokuapp.com`
+
+## Development
+
 ```
 npm install
-cp .env-dist .env // For configuration
+cp .env-dist .env
 node server
 ```
+## Tests
+Install and run `mocha`
 
-Configuration
-============
+
+## Configuration
 
 Configuration is stored in `.env`.
 
