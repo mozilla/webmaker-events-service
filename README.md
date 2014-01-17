@@ -110,29 +110,28 @@ Protected routes must include a JWT token. To obtain a token, the client must PO
 
 Tokens expire after 5 hours.
 
-<table>
-  <thead>
-    <tr>
-      <th>Method</th>
-      <th>Path</th>
-      <th>Request</th>
-      <th>Response</th>
-    </tr>
-  </thead>
-  <tr>
-    <td><code>POST</code></td>
-    <td>/auth</td>
-    <td>
-      audience: {{ audience of persona token}}
-      assertion: {{ persona token, obtained from navigator.id.request }}
-    </td>
-    <td>
-      email: {{ verified persona email }},
-      token: {{ token for protected routes }}
-      admin: {{ true | false }}
-    </td>
-  </tr>
-</table>
+
+
+#### Request
+```
+POST /auth
+
+{
+  audience: {{ audience of persona token }},    
+  assertion: {{ valid persona token }}
+}
+```
+
+#### Response
+```
+200 OK
+
+{
+  email: {{ verified persona email }},
+  token: {{ token for protected routes }},
+  admin: {{ true | false }}
+}
+```
 
 ## Routes
 
@@ -156,8 +155,8 @@ AUTHORIZATION: 'Bearer {{your token}}'
     <td><code>GET</code></td>
     <td>/events</td>
     <td>
-      limit: {{number of events || 30}}
-      order: {{field [ASC/DESC] || 'beginDate ASC'}}
+      <code>limit (e.g. 30)</code>,
+      <br><code>order (e.g. 'beginDate DESC')</code>
     </td>
     <td>No</td>
     <td>Returns an array of events in the future.</td>
