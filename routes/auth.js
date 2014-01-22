@@ -35,8 +35,6 @@ module.exports = function(env) {
           admin: env.get('dev')
         };
 
-        console.log(userProfile);
-
         var token = jwt.sign(userProfile, env.get('secret'), {
           expiresInMinutes: 60 * 5
         });
