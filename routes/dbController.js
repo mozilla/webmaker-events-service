@@ -42,7 +42,7 @@ module.exports = function(db) {
       if (!req.body) {
         return res.send(401, 'You may not create an empty event');
       }
-      if (req.body.email !== req.email) {
+      if (!req.session.email) {
         return res.send(403, 'You must authorize this event with a persona-verified email');
       }
 
@@ -67,7 +67,7 @@ module.exports = function(db) {
 
           if (eventInstance) {
             // Authentication
-            if (!req.admin || !eventInstance.organizer === req.email) {
+            if (!req.devAdmin || !req.session.user.admin || !eventInstance.organizer === req.session.email) {
               return res.send(403, 'You are not authorized to edit this event');
             }
             eventInstance
@@ -98,7 +98,7 @@ module.exports = function(db) {
         .success(function(eventInstance) {
           if (eventInstance) {
             // Authentication
-            if (!req.admin || !eventInstance.organizer === req.email) {
+            if (!req.devAdmin || !req.session.user.admin || !eventInstance.organizer === req.session.email) {
               return res.send(403, 'You are not authorized to edit this event');
             }
             eventInstance

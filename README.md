@@ -10,8 +10,9 @@ npm install
 cp .env-dist .env
 node server
 ```
-## Tests
-Install and run `mocha`
+
+## You must also run...
+[Webmaker Login Server](https://github.com/mozilla/login.webmaker.org)
 
 
 ## Configuration
@@ -25,24 +26,45 @@ Configuration is stored in `.env`.
   <td>Description</td>
 </tr>
 <tr>
+  <td><code>DEV</code></td>
+  <td><code>false</code></td>
+  <td>If <code>true</code>, fake database generation methods will be exposed as GET routes.</td>
+</tr>
+
+<tr>
   <td><code>PORT</code></td>
   <td><code>1989</code></td>
   <td>The port the server runs on.</td>
 </tr>
 <tr>
-  <td><code>STORAGE</code></td>
-  <td><code>events.sqlite</code></td>
-  <td>If using sqlite, the name and location of the sqlite file.</td>
+  <td><code>LOGIN_URL</code></td>
+  <td><code>*</code></td>
+  <td>URL for Webmaker Login server. You MUST  include this.</td>
 </tr>
 <tr>
-  <td><code>DEV</code></td>
-  <td><code>false</code></td>
-  <td>If <code>true</code>, fake database generation methods will be exposed as GET routes.</td>
+  <td><code>ALLOWED_DOMAINS</code></td>
+  <td><code>http://localhost:1981</code></td>
+  <td>URL(s) webmaker-events front end. Comma-separated if more than one.</td>
 </tr>
 <tr>
   <td><code>SECRET</code></td>
   <td><code>secretsauce</code></td>
-  <td>The secret key for signing JWT tokens.</td>
+  <td>The secret key for signing session cookies.</td>
+</tr>
+<tr>
+  <td><code>FORCE_SSL</code></td>
+  <td><code>false</code></td>
+  <td>Force SSL on cookies?</td>
+</tr>
+<tr>
+  <td><code>COOKIE_DOMAIN</code></td>
+  <td><code>undefined</code></td>
+  <td>If you want to use supercookies, add the domain here.</td>
+</tr>
+<tr>
+  <td><code>STORAGE</code></td>
+  <td><code>events.sqlite</code></td>
+  <td>If using sqlite, the name and location of the sqlite file.</td>
 </tr>
 <tr>
   <td><code>DB_DIALECT</code></td>
@@ -113,10 +135,7 @@ For old data, that is data created from the previous events system,
 
 ## Authentication
 
-Protected routes must include a JWT token. To obtain a token, the client must POST an `audience` and valid persona `assertion` to the `/auth` route on this server.
-
-Tokens expire after 5 hours.
-
+Protected routes require a user session to be set via Webmaker Login.
 
 
 #### Request
@@ -142,11 +161,7 @@ POST /auth
 
 ## Routes
 
-For protected routes, make sure you include the following header with your request:
-
-```
-AUTHORIZATION: 'Bearer {{your token}}'
-```
+For protected routes, make sure you have a session set.
 
 <table>
   <thead>
