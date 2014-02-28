@@ -1,5 +1,12 @@
 module.exports = function(db) {
 
+  // Check if a user has write access to an event.
+  function isAuthorized(req, eventInstance) {
+    if (req.session.user && req.devAdmin || req.session.user.isAdmin || eventInstance.organizer === req.session.user.email) {
+      return true;
+    }
+  }
+
   return {
 
     get: {
@@ -42,8 +49,8 @@ module.exports = function(db) {
       if (!req.body) {
         return res.send(401, 'You may not create an empty event');
       }
-      if (!req.session.email) {
-        return res.send(403, 'You must authorize this event with a persona-verified email');
+      if (!req.session.user || !req.session.user.email) {
+        return res.send(403, 'You must sign in with Webmaker to create an event');
       }
 
       db.event
@@ -65,25 +72,25 @@ module.exports = function(db) {
         .find(id)
         .success(function(eventInstance) {
 
-          if (eventInstance) {
-            // Authentication
-            if (!req.devAdmin || !req.session.user.admin || !eventInstance.organizer === req.session.email) {
-              return res.send(403, 'You are not authorized to edit this event');
-            }
-            eventInstance
-              .updateAttributes(updatedAttributes)
-              .success(function(data) {
-                res.json(data);
-              })
-              .error(function(err) {
-                res.send(500, err);
-              });
-          } else {
-            res.statusCode = 404;
-            return res.json({
-              error: 'No event found for id ' + id
-            });
+          // No event
+          if (!eventInstance) {
+            return res.send(404, 'No event found for id ' + id);
           }
+
+          // Authentication
+          if (!isAuthorized(req, eventInstance)) {
+            return res.send(403, 'You are not authorized to edit this event');
+          }
+
+          eventInstance
+            .updateAttributes(updatedAttributes)
+            .success(function(data) {
+              res.json(data);
+            })
+            .error(function(err) {
+              res.send(500, err);
+            });
+
         })
         .error(function(err) {
           res.send(500, err);
@@ -96,23 +103,26 @@ module.exports = function(db) {
       db.event
         .find(id)
         .success(function(eventInstance) {
-          if (eventInstance) {
-            // Authentication
-            if (!req.devAdmin || !req.session.user.admin || !eventInstance.organizer === req.session.email) {
-              return res.send(403, 'You are not authorized to edit this event');
-            }
-            eventInstance
-              .destroy()
-              .success(function(data) {
-                res.json(data);
-              })
-              .error(function(err) {
-                res.statusCode = 500;
-                res.json(err);
-              });
-          } else {
+
+          // No event
+          if (!eventInstance) {
             return res.send(404, 'No event found for id ' + id);
           }
+
+          // Authentication
+          if (!isAuthorized(req, eventInstance)) {
+            return res.send(403, 'You are not authorized to edit this event');
+          }
+
+          eventInstance
+            .destroy()
+            .success(function(data) {
+              res.json(data);
+            })
+            .error(function(err) {
+              res.statusCode = 500;
+              res.json(err);
+            });
         })
         .error(function(err) {
           res.send(500, err);
