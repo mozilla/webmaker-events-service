@@ -14,7 +14,7 @@ module.exports = function(env, db) {
   var app = express();
   var auth = new WebmakerAuth({
     loginURL: env.get('LOGIN_URL'),
-    secretKey: env.get('SECRET'),
+    secretKey: env.get('SESSION_SECRET'),
     forceSSL: env.get('FORCE_SSL'),
     domain: env.get('COOKIE_DOMAIN')
   });
