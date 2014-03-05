@@ -1,5 +1,8 @@
 module.exports = function(sequelize, t) {
 
+  var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-44x44.png');
+  var md5 = require('MD5');
+
   return sequelize.define('Event', {
     title: t.STRING,
     description: {
@@ -74,6 +77,14 @@ module.exports = function(sequelize, t) {
       }
     },
     organizerId: t.STRING,
+    organizerAvatar: {
+      type: t.STRING,
+      get: function() {
+        return 'https://secure.gravatar.com/avatar/' +
+                md5(this.getDataValue('organizer')) +
+                "?s=100&d=" + defaultGravatar;
+      }
+    },
     featured: {
       type: t.BOOLEAN,
       defaultValue: false,
