@@ -4,9 +4,11 @@ module.exports = function(env, app, models, login) {
   var dev = require('./devController')(models);
   var auth = require('./auth')(env);
 
+  // Healthcheck
   app.get('/', function(req, res) {
     res.send('Webmaker Events Service is up and running');
   });
+  app.get('/healthcheck', dev.healthcheck(env));
 
   app.get('/events', db.get.all);
   app.get('/events/:id', db.get.id);
