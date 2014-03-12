@@ -1,4 +1,3 @@
-
 module.exports = {
   up: function(migration, DataTypes) {
     migration.addColumn('Events', 'ageGroup', DataTypes.STRING);

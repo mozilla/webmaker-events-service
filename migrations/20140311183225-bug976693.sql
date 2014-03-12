@@ -1,0 +1,3 @@
+ALTER TABLE `Events`
+ADD COLUMN `ageGroup` VARCHAR(255),
+ADD COLUMN `skillLevel` VARCHAR(255);
