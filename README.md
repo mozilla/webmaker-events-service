@@ -126,6 +126,23 @@ The default location is `events.sqlite` in the root folder, but it can be config
 ```
 Responses also contain `id`, `createdAt`, and `updatedAt`, which are added/updated automatically.
 
+## Migrations
+
+If you need to migrate your existing database, first create a configuration file:
+
+```
+cp config/config.json.dist config/config.json
+```
+
+Edit `config/config.json` with your database credentials.
+
+Next, run the sequelize migration tool:
+
+```
+node_modules/.bin/sequelize -m
+```
+
+
 ### Existing database issues
 
 For old data, that is data created from the previous events system,
