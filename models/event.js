@@ -37,13 +37,13 @@ module.exports = function(sequelize, t) {
     ageGroup: {
       type: t.STRING,
       validate: {
-        isIn: [['kids', 'youth', 'adults']]
+        isIn: [['', 'kids', 'youth', 'adults']]
       }
     },
     skillLevel: {
       type: t.STRING,
       validate: {
-        isIn: [['beginner', 'intermediate', 'advanced']]
+        isIn: [['', 'beginner', 'intermediate', 'advanced']]
       }
     },
     beginDate: {
