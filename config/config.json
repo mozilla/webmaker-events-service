@@ -1,7 +1,0 @@
-{
-  "username": "root",
-  "password": "",
-  "database": "webmakerorg",
-  "host": "localhost",
-  "dialect": "mysql"
-}
