@@ -9,6 +9,8 @@
     "Faker": "0.5.11",
     "mysql": "2.0.0",
     "webmaker-auth": "0.0.12",
+    "mysql": "2.1.0",
+    "webmaker-auth": "0.0.12",
     "MD5": "1.2.0"
   },
   "devDependencies": {

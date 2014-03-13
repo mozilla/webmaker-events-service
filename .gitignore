@@ -5,3 +5,4 @@ dist
 *.sqlite
 *.log
 *.env
+config/config.json

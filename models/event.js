@@ -34,6 +34,18 @@ module.exports = function(sequelize, t) {
     city: t.STRING,
     country: t.STRING,
     attendees: t.INTEGER,
+    ageGroup: {
+      type: t.STRING,
+      validate: {
+        isIn: [['kids', 'youth', 'adults']]
+      }
+    },
+    skillLevel: {
+      type: t.STRING,
+      validate: {
+        isIn: [['beginner', 'intermediate', 'advanced']]
+      }
+    },
     beginDate: {
       type: t.DATE,
       allowNull: true,
