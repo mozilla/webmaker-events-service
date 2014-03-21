@@ -1,7 +1,8 @@
 # Webmaker Events Service
 
-This is a REST api service for webmaker events using Persona to authenticate requests.
-A live demo can be found at `http://webmaker-events-service.herokuapp.com`
+https://events-api.webmaker.org
+
+This is a REST api service for Webmaker Events using Persona to authenticate requests.
 
 ## Development
 
