@@ -1,3 +1,5 @@
+var hatchet = require('hatchet');
+
 module.exports = function(db) {
 
   // Check if a user has write access to an event.
@@ -56,6 +58,13 @@ module.exports = function(db) {
       db.event
         .create(req.body)
         .success(function(data) {
+          hatchet.send('create_event', {
+            eventId: data.getDataValue('id'),
+            userId: req.session.user.id,
+            user: req.session.user.username,
+            email: req.session.user.email,
+            sendEventCreationEmails: req.session.user.sendEventCreationEmails
+          });
           res.json(data);
         })
         .error(function(err) {
@@ -117,6 +126,13 @@ module.exports = function(db) {
           eventInstance
             .destroy()
             .success(function(data) {
+
+              hatchet.send('delete_event', {
+                eventId: data.getDataValue('id'),
+                userId: req.session.user.id,
+                email: req.session.user.email,
+                sendEventCreationEmails: req.session.user.sendEventCreationEmails
+              })
               res.json(data);
             })
             .error(function(err) {
