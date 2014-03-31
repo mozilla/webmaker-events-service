@@ -128,11 +128,11 @@ module.exports = function(db) {
             .success(function(data) {
 
               hatchet.send('delete_event', {
-                eventId: data.getDataValue('id'),
+                eventId: eventInstance.getDataValue('id'),
                 userId: req.session.user.id,
                 email: req.session.user.email,
                 sendEventCreationEmails: req.session.user.sendEventCreationEmails
-              })
+              });
               res.json(data);
             })
             .error(function(err) {
