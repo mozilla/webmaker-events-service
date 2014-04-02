@@ -1,6 +1,6 @@
 var hatchet = require('hatchet');
 
-module.exports = function(db) {
+module.exports = function (db) {
 
   // Check if a user has write access to an event.
   function isAuthorized(req, eventInstance) {
@@ -12,40 +12,57 @@ module.exports = function(db) {
   return {
 
     get: {
-      all: function(req, res) {
+      all: function (req, res) {
         var limit = req.query.limit || 30;
         var order = req.query.order || 'beginDate';
+        var organizerId = req.query.organizerId;
+        var after = req.query.after;
+
+        var query = {};
+
+        if (after) {
+          if ((new Date(after)).toString() !== 'Invalid Date') {
+            query.beginDate = {
+              gte: new Date(after)
+            };
+          } else {
+            res.statusCode = 500;
+            res.json({
+              error: 'Malformed after date'
+            });
+          }
+        }
+
+        if (organizerId) {
+          query.organizerId = organizerId;
+        }
 
         db.event
           .findAll({
             limit: limit,
             order: order,
-            where: {
-              beginDate: {
-                gte: new Date()
-              }
-            }
+            where: query
           })
-          .success(function(data) {
+          .success(function (data) {
             res.json(data);
           })
-          .error(function(err) {
+          .error(function (err) {
             res.statusCode = 500;
             res.json(err);
           });
       },
-      id: function(req, res) {
+      id: function (req, res) {
 
         db.event
           .find(req.params.id)
-          .success(function(data) {
+          .success(function (data) {
             res.json(data);
           });
 
       }
     },
 
-    post: function(req, res) {
+    post: function (req, res) {
 
       // Authentication
       if (!req.body) {
@@ -57,7 +74,7 @@ module.exports = function(db) {
 
       db.event
         .create(req.body)
-        .success(function(data) {
+        .success(function (data) {
           hatchet.send('create_event', {
             eventId: data.getDataValue('id'),
             userId: req.session.user.id,
@@ -67,19 +84,19 @@ module.exports = function(db) {
           });
           res.json(data);
         })
-        .error(function(err) {
+        .error(function (err) {
           res.send(500, err);
         });
     },
 
-    put: function(req, res) {
+    put: function (req, res) {
       var id = req.params.id;
       var updatedAttributes = req.body;
 
       // First, find the event
       db.event
         .find(id)
-        .success(function(eventInstance) {
+        .success(function (eventInstance) {
 
           // No event
           if (!eventInstance) {
@@ -93,25 +110,25 @@ module.exports = function(db) {
 
           eventInstance
             .updateAttributes(updatedAttributes)
-            .success(function(data) {
+            .success(function (data) {
               res.json(data);
             })
-            .error(function(err) {
+            .error(function (err) {
               res.send(500, err);
             });
 
         })
-        .error(function(err) {
+        .error(function (err) {
           res.send(500, err);
         });
     },
 
-    delete: function(req, res) {
+    delete: function (req, res) {
       var id = req.params.id;
 
       db.event
         .find(id)
-        .success(function(eventInstance) {
+        .success(function (eventInstance) {
 
           // No event
           if (!eventInstance) {
@@ -125,7 +142,7 @@ module.exports = function(db) {
 
           eventInstance
             .destroy()
-            .success(function(data) {
+            .success(function (data) {
 
               hatchet.send('delete_event', {
                 eventId: eventInstance.getDataValue('id'),
@@ -135,12 +152,12 @@ module.exports = function(db) {
               });
               res.json(data);
             })
-            .error(function(err) {
+            .error(function (err) {
               res.statusCode = 500;
               res.json(err);
             });
         })
-        .error(function(err) {
+        .error(function (err) {
           res.send(500, err);
         });
     }
