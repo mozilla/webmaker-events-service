@@ -37,7 +37,7 @@ module.exports = function(options) {
     if (err) {
       console.log(err);
     } else {
-      console.log('Successfully synced.')
+      console.log('Successfully synced.');
     }
   });
 

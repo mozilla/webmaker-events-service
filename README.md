@@ -161,7 +161,7 @@ Protected routes require a user session to be set via Webmaker Login.
 POST /auth
 
 {
-  audience: {{ audience of persona token }},    
+  audience: {{ audience of persona token }},
   assertion: {{ valid persona token }}
 }
 ```
@@ -195,11 +195,16 @@ For protected routes, make sure you have a session set.
     <td><code>GET</code></td>
     <td>/events</td>
     <td>
-      <code>limit (e.g. 30)</code>,
-      <br><code>order (e.g. 'beginDate DESC')</code>
+      <code>limit</code> (Max array size. e.g. 30. Defaults to 30.),
+      <br>
+      <code>order</code> (Sort order of returned array. e.g. 'beginDate DESC'. Defaults to 'beginDate')
+      <br>
+      <code>organizerId</code> (Constrain to events created by a user. e.g. 'mike_danton')
+      <br>
+      <code>after</code> (Return only events post-`after` time. Must be a string usable by `Date.parse`.)
     </td>
     <td>No</td>
-    <td>Returns an array of events in the future.</td>
+    <td>Returns an array of events.</td>
   </tr>
   <tr>
     <td><code>GET</code></td>
@@ -232,9 +237,9 @@ For protected routes, make sure you have a session set.
   <tr>
     <td><code>GET</code></td>
     <td>/dev/fake</td>
-    <td>amount: <code>{{number of events}}</code></td>
+    <td><code>amount</code> (number of events, e.g. 15)</code></td>
     <td>DEV=true on server config</td>
-    <td>Adds a fake item to the db.</td>
+    <td>Adds fake items to the db.</td>
   </tr>
 </table>
 
