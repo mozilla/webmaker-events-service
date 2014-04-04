@@ -3,6 +3,7 @@ module.exports = function(env, app, models, login) {
   var db = require('./dbController')(models);
   var dev = require('./devController')(models);
   var auth = require('./auth')(env);
+  var cors = require('./cors')(env);
 
   // Healthcheck
   app.get('/', function(req, res) {
@@ -10,22 +11,23 @@ module.exports = function(env, app, models, login) {
   });
   app.get('/healthcheck', dev.healthcheck(env));
 
-  app.get('/events', db.get.all);
-  app.get('/events/:id', db.get.id);
+  app.get('/events', cors.readOnly, db.get.all);
+  app.get('/events/:id', cors.readOnly, db.get.id);
 
   // Protected routes
-  app.post('/events', auth.verifyUser, db.post);
-  app.put('/events/:id', auth.verifyUser, db.put);
-  app.delete('/events/:id', auth.verifyUser, db.delete);
+  app.post('/events', cors.withAuth, auth.verifyUser, db.post);
+  app.put('/events/:id', cors.withAuth, auth.verifyUser, db.put);
+  app.delete('/events/:id', cors.withAuth, auth.verifyUser, db.delete);
 
   // Login
-  app.post('/verify', login.handlers.verify);
-  app.post('/authenticate', login.handlers.authenticate);
-  app.post('/create', login.handlers.create);
-  app.post('/logout', login.handlers.logout);
-  app.post('/check-username', login.handlers.exists);
+  app.options('*', cors.withAuth);
+  app.post('/verify', cors.withAuth, login.handlers.verify);
+  app.post('/authenticate', cors.withAuth, login.handlers.authenticate);
+  app.post('/create', cors.withAuth, login.handlers.create);
+  app.post('/logout', cors.withAuth, login.handlers.logout);
+  app.post('/check-username', cors.withAuth, login.handlers.exists);
 
   // CAUTION: Use with 'dev' db only
-  app.get('/dev/fake', auth.dev, dev.fake);
+  app.get('/dev/fake', cors.readOnly, auth.dev, dev.fake);
 
 };
