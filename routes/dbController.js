@@ -85,7 +85,7 @@ module.exports = function (db) {
           res.json(data);
         })
         .error(function (err) {
-          res.send(500, err);
+          res.json(500, err);
         });
     },
 
@@ -114,12 +114,12 @@ module.exports = function (db) {
               res.json(data);
             })
             .error(function (err) {
-              res.send(500, err);
+              res.json(500, err);
             });
 
         })
         .error(function (err) {
-          res.send(500, err);
+          res.json(500, err);
         });
     },
 
@@ -158,7 +158,7 @@ module.exports = function (db) {
             });
         })
         .error(function (err) {
-          res.send(500, err);
+          res.json(500, err);
         });
     }
   };
