@@ -78,7 +78,7 @@ module.exports = function (db) {
           hatchet.send('create_event', {
             eventId: data.getDataValue('id'),
             userId: req.session.user.id,
-            user: req.session.user.username,
+            username: req.session.user.username,
             email: req.session.user.email,
             sendEventCreationEmails: req.session.user.sendEventCreationEmails
           });
@@ -147,6 +147,7 @@ module.exports = function (db) {
               hatchet.send('delete_event', {
                 eventId: eventInstance.getDataValue('id'),
                 userId: req.session.user.id,
+                username: req.session.user.username,
                 email: req.session.user.email,
                 sendEventCreationEmails: req.session.user.sendEventCreationEmails
               });
