@@ -1,4 +1,5 @@
 var hatchet = require('hatchet');
+var jsonToCSV = require('../util/json-to-csv');
 
 module.exports = function (db) {
 
@@ -13,7 +14,7 @@ module.exports = function (db) {
 
     get: {
       all: function (req, res) {
-        var limit = req.query.limit || 30;
+        var limit = req.query.limit || null;
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
         var after = req.query.after;
@@ -44,7 +45,26 @@ module.exports = function (db) {
             where: query
           })
           .success(function (data) {
-            res.json(data);
+            var dataCopy = JSON.parse(JSON.stringify(data));
+
+            dataCopy.forEach(function (item, index) {
+              // Only show emails for logged in admins to protect user privacy
+              if (!req.session.user || !req.session.user.isAdmin) {
+                delete dataCopy[index].organizer;
+              }
+
+              // Don't return deprecated values to client
+              delete dataCopy[index].beginTime;
+              delete dataCopy[index].endTime;
+            });
+
+            if (!req.query.csv) {
+              res.json(dataCopy);
+            } else {
+              res.setHeader('Content-Type', 'text/csv');
+              res.send(jsonToCSV(dataCopy));
+            }
+
           })
           .error(function (err) {
             res.statusCode = 500;

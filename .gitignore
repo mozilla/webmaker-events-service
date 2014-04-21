@@ -6,3 +6,4 @@ dist
 *.log
 *.env
 config/config.json
+TODO.txt

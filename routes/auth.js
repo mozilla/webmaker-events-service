@@ -1,4 +1,4 @@
-module.exports = function(env) {
+module.exports = function (env) {
 
   return {
 
@@ -11,10 +11,20 @@ module.exports = function(env) {
     },
 
     // Verify that a valid cookie is set
-    verifyUser: function(req, res, next) {
+    verifyUser: function (req, res, next) {
       if (!req.session.user || !req.session.user.username) {
         return next({
           error: 'No valid user session was set.'
+        });
+      }
+      next();
+    },
+
+    // Verify that a user is an administrator
+    verifyAdmin: function (req, res, next) {
+      if (!req.session.user || !req.session.user.isAdmin) {
+        return next({
+          error: 'User isn\'t an admin.'
         });
       }
       next();

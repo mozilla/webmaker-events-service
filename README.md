@@ -195,15 +195,17 @@ For protected routes, make sure you have a session set.
     <td><code>GET</code></td>
     <td>/events</td>
     <td>
-      <code>limit</code> (Max array size. e.g. 30. Defaults to 30.),
+      <code>limit</code> (Max array size. e.g. 30. Defaults to no limit.),
       <br>
       <code>order</code> (Sort order of returned array. e.g. 'beginDate DESC'. Defaults to 'beginDate')
       <br>
       <code>organizerId</code> (Constrain to events created by a user. e.g. 'mike_danton')
       <br>
       <code>after</code> (Return only events post-`after` time. Must be a string usable by `Date.parse`.)
+      <br>
+      <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)
     </td>
-    <td>No</td>
+    <td>No<br><br>Note: Only logged in admins will get user's email.</td>
     <td>Returns an array of events.</td>
   </tr>
   <tr>
