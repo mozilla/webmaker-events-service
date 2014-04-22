@@ -1,4 +1,4 @@
-module.exports = function(env, app, models, login) {
+module.exports = function (env, app, models, login) {
 
   var db = require('./dbController')(models);
   var dev = require('./devController')(models);
@@ -6,7 +6,7 @@ module.exports = function(env, app, models, login) {
   var cors = require('./cors')(env);
 
   // Healthcheck
-  app.get('/', function(req, res) {
+  app.get('/', function (req, res) {
     res.send('Webmaker Events Service is up and running');
   });
   app.get('/healthcheck', dev.healthcheck(env));
