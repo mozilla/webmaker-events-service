@@ -10,6 +10,88 @@ module.exports = function (db) {
     }
   }
 
+  // MODEL METHODS ------------------------------------------------------------
+
+  /**
+   * Store human readable tags in the tag table if they're not already there
+   * @param  {Array, String}   tags     Human readable tags as either CSV or String array
+   * @param  {Function} callback
+   */
+
+  function storeTags(tags, callback) {
+    var tagsProcessed = 0;
+    var tagsToProcess = 0;
+    var eventTags = [];
+
+    function tagProcessed() {
+      tagsProcessed++;
+
+      if (tagsProcessed === tagsToProcess) {
+        pullTagIDs();
+      }
+    }
+
+    function pullTagIDs() {
+      db.tag
+        .findAll({
+          where: {
+            name: eventTags
+          }
+        })
+        .success(function (records) { // Construct a CSV of tag IDs to send back to caller
+          var tagIdCSV = '';
+
+          records.forEach(function (record, index) {
+            tagIdCSV += (record.id + ',');
+          });
+
+          tagIdCSV = tagIdCSV.slice(0, -1);
+          // tags = tagIdCSV;
+          callback.call(null, tagIdCSV);
+        });
+    }
+
+    // Parse CSV or just use array of tags
+    if (!Array.isArray(tags)) {
+      eventTags = tags.split(',');
+    } else {
+      eventTags = tags;
+    }
+
+    tagsToProcess = eventTags.length;
+
+    eventTags.forEach(function (tag, index) {
+      // Make lower case because tags are case insensitive
+      eventTags[index] = tag = tag.toLowerCase().trim();
+
+      db.tag
+        .find({
+          where: {
+            name: tag
+          }
+        })
+        .success(function (record) {
+          // Create a tag record if it's a new tag
+          if (!record) {
+            db.tag
+              .create({
+                name: tag
+              })
+              .success(function (data) {
+                tagProcessed();
+              })
+              .error(function (err) {
+                console.error(err);
+              });
+          } else {
+            tagProcessed();
+          }
+        });
+    });
+  }
+
+  // ROUTES -------------------------------------------------------------------
+
   return {
 
     get: {
@@ -73,16 +155,65 @@ module.exports = function (db) {
       },
       id: function (req, res) {
 
+        var eventRecord;
+        var humanTags = [];
+
+        function getHumanTags() {
+          var tagIDs = eventRecord.tags.split(',');
+
+          db.tag
+            .findAll({
+              where: {
+                id: tagIDs
+              }
+            })
+            .success(function (data) {
+              data.forEach(function (item, index) {
+                humanTags.push(item.name);
+              });
+
+              console.log(humanTags);
+
+              eventRecord.tags = humanTags;
+              finish();
+            });
+        }
+
+        function finish() {
+          res.json(eventRecord);
+        }
+
         db.event
           .find(req.params.id)
           .success(function (data) {
-            res.json(data);
+            eventRecord = data;
+            getHumanTags();
           });
 
       }
     },
 
     post: function (req, res) {
+
+      function saveRecord(tagIdCSV) {
+        req.body.tags = tagIdCSV;
+
+        db.event
+          .create(req.body)
+          .success(function (data) {
+            hatchet.send('create_event', {
+              eventId: data.getDataValue('id'),
+              userId: req.session.user.id,
+              username: req.session.user.username,
+              email: req.session.user.email,
+              sendEventCreationEmails: req.session.user.sendEventCreationEmails
+            });
+            res.json(data);
+          })
+          .error(function (err) {
+            res.json(500, err);
+          });
+      }
 
       // Authentication
       if (!req.body) {
@@ -92,21 +223,14 @@ module.exports = function (db) {
         return res.send(403, 'You must sign in with Webmaker to create an event');
       }
 
-      db.event
-        .create(req.body)
-        .success(function (data) {
-          hatchet.send('create_event', {
-            eventId: data.getDataValue('id'),
-            userId: req.session.user.id,
-            username: req.session.user.username,
-            email: req.session.user.email,
-            sendEventCreationEmails: req.session.user.sendEventCreationEmails
-          });
-          res.json(data);
-        })
-        .error(function (err) {
-          res.json(500, err);
-        });
+      // Save the event
+      if (req.body.tags) {
+        // Tags need to be stored and turned into a CSV of unique IDs for Event record
+        storeTags(req.body.tags, saveRecord);
+      } else {
+        saveRecord();
+      }
+
     },
 
     put: function (req, res) {
@@ -118,25 +242,36 @@ module.exports = function (db) {
         .find(id)
         .success(function (eventInstance) {
 
-          // No event
+          function saveRecord(tagIdCSV) {
+            updatedAttributes.tags = tagIdCSV;
+
+            eventInstance
+              .updateAttributes(updatedAttributes)
+              .success(function (data) {
+                res.json(data);
+              })
+              .error(function (err) {
+                res.json(500, err);
+              });
+          }
+
+          // Event doesn't exist
           if (!eventInstance) {
             return res.send(404, 'No event found for id ' + id);
           }
 
-          // Authentication
+          // Authentication failed
           if (!isAuthorized(req, eventInstance)) {
             return res.send(403, 'You are not authorized to edit this event');
           }
 
-          eventInstance
-            .updateAttributes(updatedAttributes)
-            .success(function (data) {
-              res.json(data);
-            })
-            .error(function (err) {
-              res.json(500, err);
-            });
-
+          // Save the event
+          if (updatedAttributes.tags) {
+            // Tags need to be stored and turned into a CSV of unique IDs for Event record
+            storeTags(updatedAttributes.tags, saveRecord);
+          } else {
+            saveRecord();
+          }
         })
         .error(function (err) {
           res.json(500, err);
@@ -185,35 +320,9 @@ module.exports = function (db) {
 
     tag: {
       post: function (req, res) {
-        // Tags aren't case sensitive and are stored as lowercase
-        var tag = req.query.tag.toLowerCase();
-
-        db.tag
-          .find({
-            where: {
-              name: tag
-            }
-          })
-          .success(function (data) {
-            if (data) {
-              res.send(409, 'Tag already exists.');
-            } else {
-              db.tag
-                .create({
-                  name: tag
-                })
-                .success(function (data) {
-                  res.json(data);
-                })
-                .error(function (err) {
-                  res.send(500, err);
-                });
-            }
-          })
-          .error(function (err) {
-            res.json(500, err);
-          });
-
+        storeTags(req.query.tag, function () {
+          res.send('Tags stored');
+        });
       },
       get: function (req, res) {
         db.tag
