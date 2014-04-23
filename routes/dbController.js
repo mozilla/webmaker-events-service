@@ -181,7 +181,59 @@ module.exports = function (db) {
         .error(function (err) {
           res.json(500, err);
         });
+    },
+
+    tag: {
+      post: function (req, res) {
+        // Tags aren't case sensitive and are stored as lowercase
+        var tag = req.query.tag.toLowerCase();
+
+        db.tag
+          .find({
+            where: {
+              name: tag
+            }
+          })
+          .success(function (data) {
+            if (data) {
+              res.send(409, 'Tag already exists.');
+            } else {
+              db.tag
+                .create({
+                  name: tag
+                })
+                .success(function (data) {
+                  res.json(data);
+                })
+                .error(function (err) {
+                  res.send(500, err);
+                });
+            }
+          })
+          .error(function (err) {
+            res.json(500, err);
+          });
+
+      },
+      get: function (req, res) {
+        db.tag
+          .findAll()
+          .success(function (data) {
+            var subset = JSON.parse(JSON.stringify(data));
+
+            for (i = 0, ii = subset.length; i < ii; i += 1) {
+              delete subset[i].createdAt;
+              delete subset[i].updatedAt;
+            }
+
+            res.json(subset);
+          })
+          .error(function (err) {
+            res.json(500, err);
+          });
+      }
     }
+
   };
 
 };
