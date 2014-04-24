@@ -243,6 +243,20 @@ For protected routes, make sure you have a session set.
     <td>DEV=true on server config</td>
     <td>Adds fake items to the db.</td>
   </tr>
+  <tr>
+    <td><code>GET</code></td>
+    <td>/tag</td>
+    <td></td>
+    <td>No</td>
+    <td>Returns all tag names and unique IDs.</td>
+  </tr>
+  <tr>
+    <td><code>POST</code></td>
+    <td>/tag</td>
+    <td><code>tag</code> (CSV of tag names)</td>
+    <td>Persona</td>
+    <td>Adds tags to the database.</td>
+  </tr>
 </table>
 
 

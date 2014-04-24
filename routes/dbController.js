@@ -1,5 +1,6 @@
 var hatchet = require('hatchet');
 var jsonToCSV = require('../util/json-to-csv');
+var _ = require('lodash');
 
 module.exports = function (db) {
 
@@ -8,6 +9,20 @@ module.exports = function (db) {
     if (req.session.user && req.devAdmin || req.session.user.isAdmin || eventInstance.organizer === req.session.user.email) {
       return true;
     }
+  }
+
+  // Remove email data for non-admins and remove deprecated values
+  function stripEventData(event, req) {
+    var dataCopy = JSON.parse(JSON.stringify(event));
+
+    if (!req.session.user || !req.session.user.isAdmin) {
+      delete dataCopy.organizer;
+    }
+
+    delete dataCopy.beginTime;
+    delete dataCopy.endTime;
+
+    return dataCopy;
   }
 
   // MODEL METHODS ------------------------------------------------------------
@@ -90,6 +105,31 @@ module.exports = function (db) {
     });
   }
 
+  /**
+   * Get human readable tags from unique tag IDs
+   * @param  {Array, String}   tags     CSV of unique tag IDs or human readable tag array
+   * @param  {Function} callback
+   */
+
+  function getHumanTags(tags, callback) {
+    var humanTags = [];
+    var tagIDs = Array.isArray(tags) ? tags : tags.split(',');
+
+    db.tag
+      .findAll({
+        where: {
+          id: tagIDs
+        }
+      })
+      .success(function (data) {
+        data.forEach(function (item) {
+          humanTags.push(item.name);
+        });
+
+        callback.call(null, humanTags, data);
+      });
+  }
+
   // ROUTES -------------------------------------------------------------------
 
   return {
@@ -129,23 +169,59 @@ module.exports = function (db) {
           .success(function (data) {
             var dataCopy = JSON.parse(JSON.stringify(data));
 
+            // Filter out the undesirables
             dataCopy.forEach(function (item, index) {
-              // Only show emails for logged in admins to protect user privacy
-              if (!req.session.user || !req.session.user.isAdmin) {
-                delete dataCopy[index].organizer;
-              }
-
-              // Don't return deprecated values to client
-              delete dataCopy[index].beginTime;
-              delete dataCopy[index].endTime;
+              dataCopy[index] = stripEventData(dataCopy[index], req);
             });
 
-            if (!req.query.csv) {
-              res.json(dataCopy);
-            } else {
-              res.setHeader('Content-Type', 'text/csv');
-              res.send(jsonToCSV(dataCopy));
-            }
+            // Fetch human readable tags --------------------------------------
+
+            var tagHash = {};
+            var tagIDs = [];
+
+            // Create an array of all the tag IDs in the event set
+            dataCopy.forEach(function (item, index) {
+              if (item.tags) {
+                var tags = item.tags.split(',');
+
+                tags.forEach(function (tag) {
+                  tagIDs.push(tag);
+                });
+              }
+            });
+
+            // De-dupe it
+            tagIDs = _.unique(tagIDs);
+
+            // Pull the human readable equivalents
+            getHumanTags(tagIDs, function (humanTags, fullTags) {
+              fullTags.forEach(function (tag) {
+                // Create a hash table for ID -> human readable lookups
+                tagHash[tag.id] = tag.name;
+              });
+
+              // Turn tag ID CSVs into arrays of human readable tags
+              dataCopy.forEach(function (event, index) {
+                if (event.tags) {
+                  var eventTagIDs = event.tags.split(',');
+                  var hrTags = [];
+
+                  eventTagIDs.forEach(function (tagID, index) {
+                    hrTags.push(tagHash[tagID]);
+                  });
+
+                  dataCopy[index].tags = hrTags;
+                }
+              });
+
+              // Return CSV or JSON based on client's choice
+              if (!req.query.csv) {
+                res.json(dataCopy);
+              } else {
+                res.setHeader('Content-Type', 'text/csv');
+                res.send(jsonToCSV(dataCopy));
+              }
+            });
 
           })
           .error(function (err) {
@@ -155,39 +231,14 @@ module.exports = function (db) {
       },
       id: function (req, res) {
 
-        var eventRecord;
-        var humanTags = [];
-
-        function getHumanTags() {
-          var tagIDs = eventRecord.tags.split(',');
-
-          db.tag
-            .findAll({
-              where: {
-                id: tagIDs
-              }
-            })
-            .success(function (data) {
-              data.forEach(function (item, index) {
-                humanTags.push(item.name);
-              });
-
-              console.log(humanTags);
-
-              eventRecord.tags = humanTags;
-              finish();
-            });
-        }
-
-        function finish() {
-          res.json(eventRecord);
-        }
-
         db.event
           .find(req.params.id)
           .success(function (data) {
-            eventRecord = data;
-            getHumanTags();
+            getHumanTags(data.tags, function (humanTags) {
+              data = stripEventData(data, req);
+              data.tags = humanTags;
+              res.json(data);
+            });
           });
 
       }
