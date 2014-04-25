@@ -11,12 +11,12 @@ module.exports = function (db) {
     }
   }
 
-  // Remove email data for non-admins and remove deprecated values
+  // Remove email data for non-admins/event creators and remove deprecated values
 
   function stripEventData(event, req) {
     var dataCopy = JSON.parse(JSON.stringify(event));
 
-    if (!req.session.user || !req.session.user.isAdmin) {
+    if (!req.session.user || (!req.session.user.isAdmin && req.session.user.email !== dataCopy.organizer)) {
       delete dataCopy.organizer;
     }
 
@@ -259,11 +259,20 @@ module.exports = function (db) {
         db.event
           .find(req.params.id)
           .success(function (data) {
-            getHumanTags(data.tags, function (humanTags) {
+            if (data) {
               data = stripEventData(data, req);
-              data.tags = humanTags;
-              res.json(data);
-            });
+
+              if (data.tags) {
+                getHumanTags(data.tags, function (humanTags) {
+                  data.tags = humanTags;
+                  res.json(data);
+                });
+              } else {
+                res.json(data);
+              }
+            } else {
+              res.send(404);
+            }
           });
 
       }
