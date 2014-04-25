@@ -12,6 +12,7 @@ module.exports = function (db) {
   }
 
   // Remove email data for non-admins and remove deprecated values
+
   function stripEventData(event, req) {
     var dataCopy = JSON.parse(JSON.stringify(event));
 
@@ -140,6 +141,7 @@ module.exports = function (db) {
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
         var after = req.query.after;
+        var filterTag = req.query.tag;
 
         var query = {};
 
@@ -213,6 +215,29 @@ module.exports = function (db) {
                   dataCopy[index].tags = hrTags;
                 }
               });
+
+              // Filter out events not tagged with specified tag
+              if (filterTag) {
+                var filteredEvents = [];
+
+                dataCopy.forEach(function (event, index) {
+                  var match = false;
+                  var i = 0;
+
+                  while (!match && i < event.tags.length) {
+                    if (event.tags[i] === filterTag) {
+                      match = true;
+                    }
+                    i++;
+                  }
+
+                  if (match) {
+                    filteredEvents.push(event);
+                  }
+                });
+
+                dataCopy = filteredEvents;
+              }
 
               // Return CSV or JSON based on client's choice
               if (!req.query.csv) {
