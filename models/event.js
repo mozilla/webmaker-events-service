@@ -101,6 +101,11 @@ module.exports = function(sequelize, t) {
       type: t.BOOLEAN,
       defaultValue: false,
       allowNull: false
+    },
+    tags: {
+      type: t.STRING(4096),
+      allowNull: false,
+      defaultValue: ''
     }
   });
 };
