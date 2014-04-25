@@ -21,11 +21,6 @@ module.exports = function (env, app, models, login) {
 
   // Login
   app.options('*', cors.withAuth);
-  app.post('/verify', cors.withAuth, login.handlers.verify);
-  app.post('/authenticate', cors.withAuth, login.handlers.authenticate);
-  app.post('/create', cors.withAuth, login.handlers.create);
-  app.post('/logout', cors.withAuth, login.handlers.logout);
-  app.post('/check-username', cors.withAuth, login.handlers.exists);
 
   // CAUTION: Use with 'dev' db only
   app.get('/dev/fake', cors.readOnly, auth.dev, dev.fake);
