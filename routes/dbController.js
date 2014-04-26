@@ -100,6 +100,7 @@ module.exports = function (db) {
             userId: req.session.user.id,
             username: req.session.user.username,
             email: req.session.user.email,
+            locale: req.session.user.prefLocale,
             sendEventCreationEmails: req.session.user.sendEventCreationEmails
           });
           res.json(data);
@@ -169,6 +170,7 @@ module.exports = function (db) {
                 userId: req.session.user.id,
                 username: req.session.user.username,
                 email: req.session.user.email,
+                locale: req.session.user.prefLocale,
                 sendEventCreationEmails: req.session.user.sendEventCreationEmails
               });
               res.json(data);
