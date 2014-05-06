@@ -31,6 +31,10 @@ module.exports = function(options) {
 
   // Import models
   var Event = sequelize.import(__dirname + '/event.js');
+  var Tag = sequelize.import(__dirname + '/tag.js');
+
+  Event.hasMany(Tag);
+  Tag.hasMany(Event);
 
   // Sync
   sequelize.sync().complete(function (err) {
@@ -43,7 +47,8 @@ module.exports = function(options) {
 
   // Export models
   return {
-    event: Event
+    event: Event,
+    tag: Tag
   };
 
 };
