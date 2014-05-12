@@ -11,8 +11,8 @@ module.exports = function (env, app, models, login) {
   });
   app.get('/healthcheck', dev.healthcheck(env));
 
-  app.get('/events', cors.readOnly, db.get.all);
-  app.get('/events/:id', cors.readOnly, db.get.id);
+  app.get('/events', cors.withAuth, db.get.all);
+  app.get('/events/:id', cors.withAuth, db.get.id);
 
   // Protected routes
   app.post('/events', cors.withAuth, auth.verifyUser, db.post);

@@ -1,9 +1,99 @@
 var hatchet = require('hatchet');
 var jsonToCSV = require('../util/json-to-csv');
+var _ = require('lodash');
+var Promise = require('bluebird');
 
 module.exports = function (db) {
 
+  /**
+   * De-dupe and lowercase groups of tags
+   * @param  {Array} tags An array of tags as Strings
+   * @return {Array}      A clean tag array
+   */
+
+  function sanitizeTags(tags) {
+    var clean = [];
+    tags = _.unique(tags);
+
+    tags.forEach(function (tag, index) {
+      clean.push(tag.toLowerCase());
+    });
+
+    return clean;
+  }
+
+  /**
+   * Turn full tag records into a simple array of strings
+   * @param  {Array} tags Array of tag record objects
+   * @return {Array}      Array of tags as Strings
+   */
+
+  function massageTags(tags) {
+    tags.forEach(function (tag, index) {
+      tags[index] = tag.name;
+    });
+
+    return tags;
+  }
+
+  /**
+   * Store unrecorded tags in DB and return a promise
+   *   with tag DAOs if storage succeeded.
+   * @param  {Array} tagsToStore Array of tags as Strings
+   * @return {Promise}
+   */
+
+  function storeTags(tagsToStore) {
+    return new Promise(function (resolve, reject) {
+      if (!tagsToStore || !tagsToStore.length) {
+        resolve.call(null, []);
+      }
+
+      db.tag
+        .findAll({ // Find pre-existing tags
+          where: {
+            name: { in : tagsToStore
+            }
+          }
+        })
+        .then(function (tags) {
+          var recordedTagNames = [];
+
+          tags.forEach(function (tag) {
+            recordedTagNames.push(tag.name);
+          });
+
+          // Determine set of unrecorded tags
+          var newTags = _.xor(tagsToStore, recordedTagNames);
+          var tagBlob = [];
+
+          newTags.forEach(function (tag) {
+            tagBlob.push({
+              name: tag
+            });
+          });
+
+          // Store new unique tag names
+          return db.tag.bulkCreate(tagBlob);
+        })
+        .then(function () { // Fetch all tag DAOs
+          return db.tag.findAll({
+            where: {
+              name: { in : tagsToStore
+              }
+            }
+          });
+        })
+        .then(function success(tagDAOs) {
+          resolve.call(null, tagDAOs);
+        }, function fail(err) {
+          reject.call(null, err);
+        });
+    });
+  }
+
   // Check if a user has write access to an event.
+
   function isAuthorized(req, eventInstance) {
     if (req.session.user && req.devAdmin || req.session.user.isAdmin || eventInstance.organizer === req.session.user.email) {
       return true;
@@ -42,7 +132,11 @@ module.exports = function (db) {
           .findAll({
             limit: limit,
             order: order,
-            where: query
+            where: query,
+            include: [{
+              model: db.tag,
+              attributes: ['name']
+            }]
           })
           .success(function (data) {
             var dataCopy = JSON.parse(JSON.stringify(data));
@@ -56,6 +150,8 @@ module.exports = function (db) {
               // Don't return deprecated values to client
               delete dataCopy[index].beginTime;
               delete dataCopy[index].endTime;
+
+              dataCopy[index].tags = massageTags(dataCopy[index].tags);
             });
 
             if (!req.query.csv) {
@@ -72,41 +168,75 @@ module.exports = function (db) {
           });
       },
       id: function (req, res) {
-
         db.event
-          .find(req.params.id)
-          .success(function (data) {
-            res.json(data);
+          .find({
+            where: {
+              id: req.params.id
+            },
+            include: [{
+              model: db.tag,
+              attributes: ['name']
+            }]
+          })
+          .then(function success(event) {
+            if (event) {
+              res.json(_.merge(event, {
+                tags: massageTags(event.tags)
+              }));
+            } else {
+              res.send(404);
+            }
+          }, function error(err) {
+            res.json(500, err);
           });
-
       }
     },
 
     post: function (req, res) {
-
-      // Authentication
+      // Verify event body
       if (!req.body) {
         return res.send(401, 'You may not create an empty event');
       }
+
+      // Verify login
       if (!req.session.user || !req.session.user.email) {
         return res.send(403, 'You must sign in with Webmaker to create an event');
       }
 
-      db.event
-        .create(req.body)
-        .success(function (data) {
+      var eventDAO;
+      var tagsToStore = sanitizeTags(req.body.tags);
+
+      db.event.create(req.body)
+        .then(function (event) { // Event is created
+
           hatchet.send('create_event', {
-            eventId: data.getDataValue('id'),
+            eventId: event.getDataValue('id'),
             userId: req.session.user.id,
             username: req.session.user.username,
             email: req.session.user.email,
             locale: req.session.user.prefLocale,
             sendEventCreationEmails: req.session.user.sendEventCreationEmails
           });
-          res.json(data);
-        })
-        .error(function (err) {
+
+          return event;
+        }, function (err) {
           res.json(500, err);
+        })
+        .then(function (event) { // Find all pre-existing tags
+          // Store a refrence for use later in the promise chain
+          eventDAO = event;
+
+          return storeTags(tagsToStore);
+        })
+        .then(function (tags) {
+          // Associate tags with the event
+          return eventDAO.setTags(tags);
+        })
+        .then(function () {
+          res.json({
+            message: 'Event created.',
+            id: eventDAO.id
+          });
         });
     },
 
@@ -131,13 +261,15 @@ module.exports = function (db) {
 
           eventInstance
             .updateAttributes(updatedAttributes)
-            .success(function (data) {
-              res.json(data);
+            .then(function () {
+              return storeTags(updatedAttributes.tags);
             })
-            .error(function (err) {
-              res.json(500, err);
+            .then(function (tagDAOs) {
+              eventInstance.setTags(tagDAOs);
+              res.send('Event record updated');
+            }, function fail(error) {
+              res.json(500, error);
             });
-
         })
         .error(function (err) {
           res.json(500, err);
@@ -161,10 +293,13 @@ module.exports = function (db) {
             return res.send(403, 'You are not authorized to edit this event');
           }
 
+          // Destroy tag associations
+          eventInstance.setTags([]);
+
+          // Destroy event record
           eventInstance
             .destroy()
             .success(function (data) {
-
               hatchet.send('delete_event', {
                 eventId: eventInstance.getDataValue('id'),
                 userId: req.session.user.id,
@@ -173,11 +308,11 @@ module.exports = function (db) {
                 locale: req.session.user.prefLocale,
                 sendEventCreationEmails: req.session.user.sendEventCreationEmails
               });
-              res.json(data);
+
+              res.send('Event deleted');
             })
             .error(function (err) {
-              res.statusCode = 500;
-              res.json(err);
+              res.json = (500, err);
             });
         })
         .error(function (err) {

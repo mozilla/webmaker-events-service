@@ -5,13 +5,15 @@
     "express": "3.4.7",
     "habitat": "1.1.0",
     "hatchet": "0.1.0",
-    "sequelize": "1.7.0-rc1",
+    "sequelize": "1.7.3",
     "sqlite3": "2.2.0",
     "Faker": "0.5.11",
     "mysql": "2.1.0",
     "webmaker-auth": "0.0.12",
     "MD5": "1.2.0",
-    "newrelic": "1.4.0"
+    "newrelic": "1.4.0",
+    "lodash": "2.4.1",
+    "bluebird": "1.2.4"
   },
   "devDependencies": {
     "should": "~2.1.1",

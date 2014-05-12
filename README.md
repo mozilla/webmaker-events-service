@@ -132,6 +132,7 @@ The default location is `events.sqlite` in the root folder, but it can be config
   "organizer": "misael@antonetta.tv",
   "organizerId": "Laney8",
   "featured": false,
+  "tags": ["security", "pizza", "jeff goldblum"]
 }
 ```
 Responses also contain `id`, `createdAt`, and `updatedAt`, which are added/updated automatically.
