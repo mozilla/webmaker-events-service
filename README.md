@@ -78,6 +78,15 @@ Configuration is stored in `.env`.
   <td>If defined, sequelize will use this to configure databse, username, password, etc.</td>
 </tr>
 <tr>
+  <td><code>DB_HOST</code></td>
+  <td><code>undefined</code></td>
+  <td>If you are using mysql, database host, e.g. localhost</td>
+</tr><tr>
+  <td><code>DB_PORT</code></td>
+  <td><code>3306</code></td>
+  <td>If you are using mysql, database port</td>
+</tr>
+<tr>
   <td><code>DB_DATABASE</code></td>
   <td><code>undefined</code></td>
   <td>Database name</td>
