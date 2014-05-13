@@ -219,8 +219,6 @@ module.exports = function (db) {
           });
 
           return event;
-        }, function (err) {
-          res.json(500, err);
         })
         .then(function (event) { // Find all pre-existing tags
           // Store a refrence for use later in the promise chain
@@ -236,6 +234,11 @@ module.exports = function (db) {
           res.json({
             message: 'Event created.',
             id: eventDAO.id
+          });
+        })
+        .catch(function(err) {
+          res.json(500, {
+            error: err.toString()
           });
         });
     },
