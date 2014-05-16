@@ -11,7 +11,7 @@
     "mysql": "2.1.0",
     "webmaker-auth": "0.0.12",
     "MD5": "1.2.0",
-    "newrelic": "1.4.0",
+    "newrelic": "1.5.5",
     "lodash": "2.4.1",
     "bluebird": "1.2.4"
   },
