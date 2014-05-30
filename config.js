@@ -1,5 +1,6 @@
 module.exports = function(env, db) {
   var express = require('express');
+  var helmet = require('helmet');
   var WebmakerAuth = require('webmaker-auth');
   var routes = require('./routes');
 
@@ -12,6 +13,18 @@ module.exports = function(env, db) {
   }
 
   var app = express();
+
+  // Check for helmet security options
+  if (process.env.HSTS_DISABLED != 'true') {
+    app.use(helmet.hsts());
+  }
+  if (process.env.DISABLE_XFO_HEADERS_DENY != 'true') {
+    app.use(helmet.xframe('deny'));
+  }
+  if (process.env.IEXSS_PROTECTION_DISABLED != 'true') {
+    app.use(helmet.iexss());
+  }
+
   var auth = new WebmakerAuth({
     loginURL: env.get('LOGIN_URL'),
     secretKey: env.get('SESSION_SECRET'),
