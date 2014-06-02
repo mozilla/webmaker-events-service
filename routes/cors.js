@@ -1,12 +1,17 @@
 module.exports = function(env) {
-  return {
+  var allowedDomains = env.get('ALLOWED_DOMAINS').split(' ');
 
+  return {
     // Use this CORS middleware for any protected routes that need credentials (cookies)
     withAuth: function(req, res, next) {
-      res.header('Access-Control-Allow-Origin', env.get('ALLOWED_DOMAINS'));
-      res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
-      res.header('Access-Control-Allow-Credentials', true);
+      // Only 1 domain can be served up with Allow-Origin, so we'll use the incoming one if allowed
+      if (allowedDomains.indexOf(req.headers.origin) > -1) {
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
+        res.header('Access-Control-Allow-Credentials', true);
+      }
+
       next();
     },
 
