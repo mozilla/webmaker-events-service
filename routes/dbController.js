@@ -108,6 +108,7 @@ module.exports = function (db) {
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
         var after = req.query.after;
+        var dedupe = req.query.dedupe || false;
 
         var query = {};
 
@@ -153,6 +154,11 @@ module.exports = function (db) {
 
               dataCopy[index].tags = massageTags(dataCopy[index].tags);
             });
+
+            // Don't return multiple events with the same title when dedupe is enabled
+            if (dedupe) {
+              dataCopy = _.uniq(dataCopy, 'title');
+            }
 
             if (!req.query.csv) {
               res.json(dataCopy);
