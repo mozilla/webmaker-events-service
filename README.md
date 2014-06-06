@@ -213,6 +213,8 @@ For protected routes, make sure you have a session set.
       <br>
       <code>after</code> (Return only events post-`after` time. Must be a string usable by `Date.parse`.)
       <br>
+      <code>dedupe</code> (Only allow 1 event of per event title when set to `true`. Defaults to `false`.)
+      <br>
       <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)
     </td>
     <td>No<br><br>Note: Only logged in admins will get user's email.</td>
