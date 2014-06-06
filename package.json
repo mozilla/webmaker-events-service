@@ -5,6 +5,7 @@
     "express": "3.4.7",
     "habitat": "1.1.0",
     "hatchet": "0.1.0",
+    "helmet": "0.2.1",
     "sequelize": "1.7.3",
     "sqlite3": "2.2.0",
     "Faker": "0.5.11",
