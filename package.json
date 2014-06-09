@@ -2,18 +2,19 @@
   "name": "webmaker-events-service",
   "version": "0.2.4",
   "dependencies": {
+    "Faker": "0.5.11",
+    "MD5": "1.2.0",
+    "bluebird": "1.2.4",
     "express": "3.4.7",
     "habitat": "1.1.0",
     "hatchet": "0.1.0",
+    "lodash": "2.4.1",
+    "messina": "^0.1.2",
+    "mysql": "2.1.0",
+    "newrelic": "1.5.5",
     "sequelize": "1.7.3",
     "sqlite3": "2.2.0",
-    "Faker": "0.5.11",
-    "mysql": "2.1.0",
-    "webmaker-auth": "0.0.12",
-    "MD5": "1.2.0",
-    "newrelic": "1.5.5",
-    "lodash": "2.4.1",
-    "bluebird": "1.2.4"
+    "webmaker-auth": "0.0.12"
   },
   "devDependencies": {
     "should": "~2.1.1",

@@ -1,5 +1,6 @@
 module.exports = function(env, db) {
   var express = require('express');
+  var messina = require('messina')('webmaker-events-service-' + env.get('NODE_ENV'));
   var WebmakerAuth = require('webmaker-auth');
   var routes = require('./routes');
 
@@ -19,7 +20,12 @@ module.exports = function(env, db) {
     domain: env.get('COOKIE_DOMAIN')
   });
 
-  app.use(express.logger('dev'));
+  if (env.get('ENABLE_GELF_LOGS')) {
+    messina.patchConsole();
+    app.use(messina.middleware());
+  } else {
+    app.use(express.logger('dev'));
+  }
   app.use(express.compress());
   app.use(express.json());
   app.use(express.urlencoded());
