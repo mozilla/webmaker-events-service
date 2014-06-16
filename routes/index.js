@@ -1,7 +1,7 @@
 module.exports = function (env, app, models, login) {
 
-  var db = require('./dbController')(models);
-  var dev = require('./devController')(models);
+  var events = require('./event-controller')(models);
+  var dev = require('./dev-controller')(models);
   var auth = require('./auth')(env);
   var cors = require('./cors')(env);
 
@@ -11,13 +11,13 @@ module.exports = function (env, app, models, login) {
   });
   app.get('/healthcheck', dev.healthcheck(env));
 
-  app.get('/events', cors.withAuth, db.get.all);
-  app.get('/events/:id', cors.withAuth, db.get.id);
+  app.get('/events', cors.withAuth, events.get.all);
+  app.get('/events/:id', cors.withAuth, events.get.id);
 
   // Protected routes
-  app.post('/events', cors.withAuth, auth.verifyUser, db.post);
-  app.put('/events/:id', cors.withAuth, auth.verifyUser, db.put);
-  app.delete('/events/:id', cors.withAuth, auth.verifyUser, db.delete);
+  app.post('/events', cors.withAuth, auth.verifyUser, events.post);
+  app.put('/events/:id', cors.withAuth, auth.verifyUser, events.put);
+  app.delete('/events/:id', cors.withAuth, auth.verifyUser, events.delete);
 
   // Login
   app.options('*', cors.withAuth);

@@ -7,3 +7,4 @@ dist
 *.env
 config/config.json
 TODO.txt
+postman.json
