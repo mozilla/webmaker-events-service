@@ -2,7 +2,7 @@ module.exports = function (env, app, models, login) {
 
   var events = require('./event-controller')(models);
   var dev = require('./dev-controller')(models);
-  var rsvp = require('./rsvp-controller.js')(models);
+  var attendee = require('./attendee-controller.js')(models);
   var auth = require('./auth')(env);
   var cors = require('./cors')(env);
 
@@ -21,10 +21,10 @@ module.exports = function (env, app, models, login) {
   app.delete('/events/:id', cors.withAuth, auth.verifyUser, events.delete);
 
   // RSVP
-
-  app.get('/rsvp/event/:id', cors.withAuth, rsvp.get.event);
-  app.get('/rsvp/user/:id', cors.withAuth, rsvp.get.user);
-  app.post('/rsvp', cors.withAuth, rsvp.post);
+  app.get('/rsvp/event/:id', cors.withAuth, auth.verifyUser, attendee.rsvp.get.event);
+  app.get('/rsvp/user/:id', cors.withAuth, auth.verifyUser, attendee.rsvp.get.user);
+  app.post('/rsvp', cors.withAuth, auth.verifyUser, attendee.rsvp.post);
+  app.delete('/rsvp', cors.withAuth, auth.verifyUser, attendee.rsvp.delete);
 
   // Login
   app.options('*', cors.withAuth);
