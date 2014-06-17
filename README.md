@@ -250,13 +250,40 @@ For protected routes, make sure you have a session set.
   </tr>
   <tr>
     <td><code>GET</code></td>
+    <td>/rsvp/user/:id</td>
+    <td></td>
+    <td>Persona (Users may only see their own RSVP list.)</td>
+    <td>Get a user's RSVP'd events.</td>
+  </tr>
+  <tr>
+    <td><code>GET</code></td>
+    <td>/rsvp/event/:id</td>
+    <td></td>
+    <td><strong>Private Lists:</strong> Persona (admin or event creator)</td>
+    <td>Get an event's attendee info.</td>
+  </tr>
+  <tr>
+    <td><code>POST</code></td>
+    <td>/rsvp</td>
+    <td><code>userid</code> (ID number for user)<br><code>eventid</code> (ID number for event)</td>
+    <td>Persona (Users may only RSVP themselves)</td>
+    <td>RSVP a user to an event.</td>
+  </tr>
+  <tr>
+    <td><code>DELETE</code></td>
+    <td>/rsvp</td>
+    <td><code>userid</code> (ID number for user)<br><code>eventid</code> (ID number for event)</td>
+    <td>Persona (Users may only un-RSVP themselves)</td>
+    <td>Un-RSVP a user from an event.</td>
+  </tr>
+  <tr>
+    <td><code>GET</code></td>
     <td>/dev/fake</td>
     <td><code>amount</code> (number of events, e.g. 15)</code></td>
     <td>DEV=true on server config</td>
     <td>Adds fake items to the db.</td>
   </tr>
 </table>
-
 
 ## Deployment
 

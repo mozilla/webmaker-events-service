@@ -119,11 +119,14 @@ module.exports = function(db) {
                     res.send('Record created. User RSVP\'d.');
                   });
               } else {
-                res.send('Record already exists.');
+                result.updateAttributes({
+                  didRSVP: true
+                });
+                res.send('Record already exists. Updating RSVP to true.');
               }
 
             }, function failure(err) {
-              res.send(500);
+              res.send(500, 'Error.');
             });
         } else {
           res.send(401, 'Not authorized.');
@@ -146,14 +149,10 @@ module.exports = function(db) {
             })
             .then(function success(result) {
               if (result) {
-                result
-                  .destroy()
-                  .success(function(data) {
-                    res.send('Record deleted');
-                  })
-                  .error(function(error) {
-                    res.json(500, err);
-                  });
+                result.updateAttributes({
+                  didRSVP: false
+                });
+                res.send('Un-RSVP\'d user.');
               } else {
                 res.send('Record doesn\'t exist.');
               }
