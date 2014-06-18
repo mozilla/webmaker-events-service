@@ -9,59 +9,33 @@ module.exports = function(db) {
         event: function(req, res) {
           var eventID = parseInt(req.params.id, 10);
 
-          function getEvent(id) {
-            return new Promise(function(resolve, reject) {
-              db.event
-                .find({
-                  where: {
-                    id: id
-                  }
-                })
-                .then(function success(result) {
-                  if (result) {
-                    resolve.call(null, result);
-                  } else {
-                    reject.call(null);
-                  }
-                }, function failure(err) {
-                  reject.call(null);
-                });
-            });
-          }
+          // Grab attendee info if it's public, requesting user is admin, or user created event
 
-          function getAttendanceInfo(eventID) {
-            return new Promise(function(resolve, reject) {
-              db.attendee
-                .findAll({
-                  where: {
-                    eventID: eventID
-                  }
-                })
-                .then(function success(result) {
-                  if (result) {
-                    resolve.call(null, result);
-                  } else {
-                    reject.call(null);
-                  }
-                }, function failure(err) {
-                  reject.call(null);
-                });
-            });
-          }
-
-          // Grab attendee info if it's public, user is admin, or user created event
-          getEvent(eventID)
+          db.event
+            .find({
+              where: {
+                id: eventID
+              }
+            })
             .then(function success(event) {
               var user = req.session.user;
 
+              if (!event) {
+                res.send(404);
+              }
+
               if (event.areAttendeesPublic ||
                 (user && (user.isAdmin || user.username === event.organizerId))) {
-                return getAttendanceInfo(eventID);
+                return db.attendee.findAll({
+                  where: {
+                    eventID: eventID
+                  }
+                });
               } else {
                 res.send(401);
               }
             }, function fail() {
-              res.send(404);
+              res.send(500);
             })
             .then(function success(attendees) {
               res.json(attendees);
