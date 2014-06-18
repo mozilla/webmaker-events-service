@@ -1,6 +1,6 @@
-module.exports = function (env, app, models, login) {
+module.exports = function (env, app, models, userClient) {
 
-  var events = require('./event-controller')(models);
+  var events = require('./event-controller')(models, userClient);
   var dev = require('./dev-controller')(models);
   var attendee = require('./attendee-controller.js')(models);
   var auth = require('./auth')(env);

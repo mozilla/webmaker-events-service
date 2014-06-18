@@ -14,7 +14,8 @@
     "newrelic": "1.5.5",
     "sequelize": "1.7.3",
     "sqlite3": "2.2.0",
-    "webmaker-auth": "0.1.1"
+    "webmaker-auth": "0.1.1",
+    "webmaker-user-client": "0.1.1"
   },
   "devDependencies": {
     "should": "~2.1.1",

@@ -19,6 +19,9 @@ module.exports = function(env, db) {
     forceSSL: env.get('FORCE_SSL'),
     domain: env.get('COOKIE_DOMAIN')
   });
+  var userClient = new (require('webmaker-user-client'))({
+    endpoint: env.get('LOGIN_URL_WITH_AUTH')
+  });
 
   if (env.get('ENABLE_GELF_LOGS')) {
     messina.init();
@@ -44,7 +47,7 @@ module.exports = function(env, db) {
   app.use(app.router);
 
   // Add routes
-  routes(env, app, db, auth);
+  routes(env, app, db, userClient);
 
   return app;
 };

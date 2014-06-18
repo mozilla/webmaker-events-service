@@ -3,7 +3,7 @@ var jsonToCSV = require('../util/json-to-csv');
 var _ = require('lodash');
 var Promise = require('bluebird');
 
-module.exports = function (db) {
+module.exports = function (db, userClient) {
 
   /**
    * De-dupe and lowercase groups of tags
@@ -95,9 +95,9 @@ module.exports = function (db) {
   // Check if a user has write access to an event.
 
   function isAuthorized(req, eventInstance) {
-    if (req.session.user && req.devAdmin || req.session.user.isAdmin || eventInstance.organizer === req.session.user.email) {
-      return true;
-    }
+    return (req.session.user && req.devAdmin) ||
+           (req.session.user && req.session.user.isAdmin) ||
+           (req.session.user && eventInstance.organizer === req.session.user.email);
   }
 
   return {
@@ -179,19 +179,64 @@ module.exports = function (db) {
             where: {
               id: req.params.id
             },
-            include: [{
-              model: db.tag,
-              attributes: ['name']
-            }]
+            include: [
+              db.coorg,
+              db.coorgRequest,
+              db.mentor,
+              db.mentorRequest,
+              {
+                model: db.tag,
+                attributes: ['name']
+              }
+            ]
           })
           .then(function success(event) {
-            if (event) {
-              res.json(_.merge(event, {
-                tags: massageTags(event.tags)
-              }));
-            } else {
-              res.send(404);
+            if (!event) {
+              return res.send(404);
             }
+
+            event = _.merge(event, {
+              tags: massageTags(event.tags)
+            })
+
+            if (!event.coorganizers.length &&
+                !event.mentors.length) {
+              return res.json(event);
+            }
+
+            // Pull out userIds from coorganizers and mentors
+            var userIds = event.coorganizers.map(function(c) {
+              return c.userId;
+            }).concat(event.mentors.map(function(m) {
+              return m.userId;
+            }));
+
+            // Get user data for each userId
+            userClient.get.byIds(userIds, function(err, users) {
+              if (err) {
+                return res.send(500, err.toString());
+              }
+              if (!users || !Array.isArray(users.users)) {
+                return res.send(500, "Couldn't find any user ids in login database");
+              }
+
+              var usersById = {};
+              users.users.forEach(function(u) {
+                usersById[u.id] = u;
+              });
+
+              event.coorganizers.forEach(function(c) {
+                c._username = usersById[c.userId].username;
+                c._avatar = usersById[c.userId].avatar;
+              });
+              event.mentors.forEach(function(m) {
+                m._username = usersById[m.userId].username;
+                m._avatar = usersById[m.userId].avatar;
+              });
+
+              return res.json(event);
+            });
+
           }, function error(err) {
             res.json(500, err);
           });
