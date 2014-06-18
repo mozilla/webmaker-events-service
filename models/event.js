@@ -101,6 +101,11 @@ module.exports = function(sequelize, t) {
       type: t.BOOLEAN,
       defaultValue: false,
       allowNull: false
+    },
+    areAttendeesPublic: {
+      type: t.BOOLEAN,
+      defaultValue: false,
+      allowNull: false
     }
   });
 };
