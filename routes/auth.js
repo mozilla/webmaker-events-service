@@ -13,7 +13,7 @@ module.exports = function(env) {
     // Verify that a valid cookie is set
     verifyUser: function(req, res, next) {
       if (!req.session.user || !req.session.user.username) {
-        res.send(401, 'No valid user session was set.');
+        return res.send(401, 'No valid user session was set.');
       }
       next();
     },
@@ -21,7 +21,7 @@ module.exports = function(env) {
     // Verify that a user is an administrator
     verifyAdmin: function(req, res, next) {
       if (!req.session.user || !req.session.user.isAdmin) {
-        res.send(401, 'User isn\'t an admin.');
+        return res.send(401, 'User isn\'t an admin.');
       }
       next();
     }
