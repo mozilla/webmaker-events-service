@@ -21,7 +21,7 @@ module.exports = function (env, app, models, login) {
   app.delete('/events/:id', cors.withAuth, auth.verifyUser, events.delete);
 
   // RSVP
-  app.get('/rsvp/event/:id', cors.withAuth, auth.verifyUser, attendee.rsvp.get.event);
+  app.get('/rsvp/event/:id', cors.withAuth, attendee.rsvp.get.event);
   app.get('/rsvp/user/:id', cors.withAuth, auth.verifyUser, attendee.rsvp.get.user);
   app.post('/rsvp', cors.withAuth, auth.verifyUser, attendee.rsvp.post);
   app.delete('/rsvp', cors.withAuth, auth.verifyUser, attendee.rsvp.delete);
