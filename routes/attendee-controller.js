@@ -73,15 +73,31 @@ module.exports = function(db) {
 
         // Ensure user is authorized to RSVP
         if (req.session.user && req.session.user.id === userID) {
-          // Make sure RSVP doesn't exist already and store if not.
-          db.attendee
+
+          // Make sure the event exists first
+          db.event
             .find({
               where: {
-                userID: userID,
-                eventID: eventID
+                id: eventID
               }
             })
+            .then(function success(event) {
+              if (!event) {
+                res.send(404, 'Event not found');
+              } else {
+                return db.attendee
+                  .find({
+                    where: {
+                      userID: userID,
+                      eventID: eventID
+                    }
+                  });
+              }
+            }, function fail() {
+              res.send(500);
+            })
             .then(function success(result) {
+              // Make sure RSVP doesn't exist already and store if not.
               if (!result) {
                 db.attendee
                   .create({
