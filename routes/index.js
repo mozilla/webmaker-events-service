@@ -3,6 +3,7 @@ module.exports = function (env, app, models, userClient) {
   var events = require('./event-controller')(models, userClient);
   var dev = require('./dev-controller')(models);
   var attendee = require('./attendee-controller.js')(models);
+  var confirmation = require('./confirmation.js')(models, userClient);
   var auth = require('./auth')(env);
   var cors = require('./cors')(env);
 
@@ -19,6 +20,9 @@ module.exports = function (env, app, models, userClient) {
   app.post('/events', cors.withAuth, auth.verifyUser, events.post);
   app.put('/events/:id', cors.withAuth, auth.verifyUser, events.put);
   app.delete('/events/:id', cors.withAuth, auth.verifyUser, events.delete);
+
+  // Mentor confirmation
+  app.post('/confirm/mentor/:token', cors.withAuth, auth.verifyUser, confirmation.update);
 
   // RSVP
   app.get('/rsvp/event/:id', cors.withAuth, attendee.rsvp.get.event);
