@@ -1,7 +1,7 @@
 module.exports = function (db, userClient) {
   return {
     update: function (req, res, next) {
-      var confirmed = req.query.confirmation === 'yes';
+      var confirmed = req.body.confirmation === 'yes';
       var token = req.params.token;
 
       // Error handling
