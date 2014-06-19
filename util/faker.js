@@ -26,7 +26,8 @@ module.exports = function () {
       organizerId: faker.Name.firstName() + faker.Helpers.randomNumber(100),
       featured: false,
       ageGroup: (['', 'kids', 'youth', 'adults'])[Math.floor(Math.random() * 4)],
-      skillLevel: (['', 'beginner', 'intermediate', 'advanced'])[Math.floor(Math.random() * 4)]
+      skillLevel: (['', 'beginner', 'intermediate', 'advanced'])[Math.floor(Math.random() * 4)],
+      areAttendeesPublic: Math.random() > 0.5 ? true : false
     };
   };
 
