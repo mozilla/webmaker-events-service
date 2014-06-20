@@ -92,6 +92,25 @@ module.exports = function (db, userClient) {
     });
   }
 
+  // parent is a model, e.g. db.event
+  // items is an array of objects: { model: "mentorRequest" instances: [] }
+  function createAssociationInstances(parent, items) {
+    items = items || [];
+
+    var instances = [];
+    var model;
+
+    for (var i = 0; i < items.length; i++) {
+      model = db[items[i].model];
+      // convert plain instsance objects into real sequelize stuff
+      items[i].instances.forEach(function (instance, model) {
+        instances.push(model.build(instance));
+      });
+    }
+    console.log(instances);
+    return instances;
+  }
+
   // Check if a user has write access to an event.
 
   function isAuthorized(req, eventInstance) {
@@ -259,6 +278,17 @@ module.exports = function (db, userClient) {
 
       db.event.create(req.body)
         .then(function (event) { // Event is created
+
+          createAssociationInstances(event, [
+            {
+              model: 'coorg',
+              instances: req.body.coorganizers
+            },
+            {
+              model: 'mentorRequest',
+              instances: req.body.mentorRequests
+            }
+          ]);
 
           hatchet.send('create_event', {
             eventId: event.getDataValue('id'),
