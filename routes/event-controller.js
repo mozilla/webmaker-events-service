@@ -102,6 +102,7 @@ module.exports = function (db, userClient) {
 
     for (var i = 0; i < items.length; i++) {
       model = db[items[i].model];
+      console.log(model);
       // convert plain instsance objects into real sequelize stuff
       items[i].instances.forEach(function (instance, model) {
         instances.push(model.build(instance));
