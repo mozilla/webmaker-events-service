@@ -2,7 +2,6 @@ var hatchet = require('hatchet');
 var jsonToCSV = require('../util/json-to-csv');
 var _ = require('lodash');
 var Promise = require('bluebird');
-var async = require('async');
 
 module.exports = function (db, userClient) {
 
@@ -106,7 +105,7 @@ module.exports = function (db, userClient) {
         .bulkCreate(instances)
         .then(function success(data) {
           resolve.call(null, event);
-        }, function fail(err) {
+        }, function failure(err) {
           reject.call(null, err);
         });
     });
@@ -246,18 +245,20 @@ module.exports = function (db, userClient) {
               });
 
               event.coorganizers.forEach(function(c) {
-                if (!c) {
+                var user = usersById[c.userId];
+                if (!user) {
                   return;
                 }
-                c._username = usersById[c.userId].username;
-                c._avatar = usersById[c.userId].avatar;
+                c._username = user.username;
+                c._avatar = user.avatar;
               });
               event.mentors.forEach(function(m) {
-                if (!m) {
+                var user = usersById[m.userId];
+                if (!user) {
                   return;
                 }
-                m._username = usersById[m.userId].username;
-                m._avatar = usersById[m.userId].avatar;
+                m._username = user.username;
+                m._avatar = user.avatar;
               });
 
               return res.json(event);
@@ -287,54 +288,46 @@ module.exports = function (db, userClient) {
         return coorganizer.username;
       });
 
-      userClient.get.byUsernames(usernames, function (err, users) {
-        var coorgs = users.users.map(function (user) {
-          return {
-            userId: user.id
-          };
-        });
+      db.event.create(req.body)
+        .then(function (event) { // Event is created
 
-        db.event.create(req.body)
-          .then(function (event) { // Event is created
+          hatchet.send('create_event', {
+            eventId: event.getDataValue('id'),
+            userId: req.session.user.id,
+            username: req.session.user.username,
+            email: req.session.user.email,
+            locale: req.session.user.prefLocale,
+            sendEventCreationEmails: req.session.user.sendEventCreationEmails
+          });
 
-            hatchet.send('create_event', {
-              eventId: event.getDataValue('id'),
-              userId: req.session.user.id,
-              username: req.session.user.username,
-              email: req.session.user.email,
-              locale: req.session.user.prefLocale,
-              sendEventCreationEmails: req.session.user.sendEventCreationEmails
-            });
+          return event;
+        })
+        .then(function (event) {
+          return createAssociations(event, 'mentorRequest', req.body.mentorRequests);
+        })
+        .then(function (event) {
+          return createAssociations(event, 'coorg', coorgs);
+        })
+        .then(function (event) { // Find all pre-existing tags
+          // Store a refrence for use later in the promise chain
+          eventDAO = event;
 
-            return event;
-          })
-          .then(function (event) {
-            return createAssociations(event, 'mentorRequest', req.body.mentorRequests);
-          })
-          .then(function (event) {
-            return createAssociations(event, 'coorg', coorgs);
-          })
-          .then(function (event) { // Find all pre-existing tags
-            // Store a refrence for use later in the promise chain
-            eventDAO = event;
-
-            return storeTags(tagsToStore);
-          })
-          .then(function (tags) {
-            // Associate tags with the event
-            return eventDAO.setTags(tags);
-          })
-          .then(function () {
-            res.json({
-              message: 'Event created.',
-              id: eventDAO.id
-            });
-          })
-          .catch(function(err) {
-            console.log(err.stack);
-            res.json(500, {
-              error: err.toString()
-            });
+          return storeTags(tagsToStore);
+        })
+        .then(function (tags) {
+          // Associate tags with the event
+          return eventDAO.setTags(tags);
+        })
+        .then(function () {
+          res.json({
+            message: 'Event created.',
+            id: eventDAO.id
+          });
+        })
+        .catch(function(err) {
+          console.log(err.stack);
+          res.json(500, {
+            error: err.toString()
           });
         });
     },
