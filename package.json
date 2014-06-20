@@ -15,7 +15,8 @@
     "sequelize": "1.7.3",
     "sqlite3": "2.2.0",
     "webmaker-auth": "0.1.1",
-    "webmaker-user-client": "0.1.1"
+    "webmaker-user-client": "0.1.1",
+    "async": "^0.9.0"
   },
   "devDependencies": {
     "should": "~2.1.1",

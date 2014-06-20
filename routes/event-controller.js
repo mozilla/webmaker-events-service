@@ -2,6 +2,7 @@ var hatchet = require('hatchet');
 var jsonToCSV = require('../util/json-to-csv');
 var _ = require('lodash');
 var Promise = require('bluebird');
+var async = require('async');
 
 module.exports = function (db, userClient) {
 
@@ -92,24 +93,23 @@ module.exports = function (db, userClient) {
     });
   }
 
-  // parent is a model, e.g. db.event
-  // items is an array of objects: { model: "mentorRequest" instances: [] }
-  function createAssociationInstances(parent, items) {
-    items = items || [];
+  function createAssociations(event, type, instances) {
+    return new Promise(function (resolve, reject) {
+      var model = db[type];
+      var emailsUsernames = [];
 
-    var instances = [];
-    var model;
-
-    for (var i = 0; i < items.length; i++) {
-      model = db[items[i].model];
-      console.log(model);
-      // convert plain instsance objects into real sequelize stuff
-      items[i].instances.forEach(function (instance, model) {
-        instances.push(model.build(instance));
+      instances.forEach(function (instance) {
+        instance.EventId = event.id
       });
-    }
-    console.log(instances);
-    return instances;
+
+      model
+        .bulkCreate(instances)
+        .then(function success(data) {
+          resolve.call(null, event);
+        }, function fail(err) {
+          reject.call(null, err);
+        });
+    });
   }
 
   // Check if a user has write access to an event.
@@ -246,10 +246,16 @@ module.exports = function (db, userClient) {
               });
 
               event.coorganizers.forEach(function(c) {
+                if (!c) {
+                  return;
+                }
                 c._username = usersById[c.userId].username;
                 c._avatar = usersById[c.userId].avatar;
               });
               event.mentors.forEach(function(m) {
+                if (!m) {
+                  return;
+                }
                 m._username = usersById[m.userId].username;
                 m._avatar = usersById[m.userId].avatar;
               });
@@ -277,50 +283,58 @@ module.exports = function (db, userClient) {
       var eventDAO;
       var tagsToStore = sanitizeTags(req.body.tags);
 
-      db.event.create(req.body)
-        .then(function (event) { // Event is created
+      var usernames = req.body.coorganizers.map(function (coorganizer) {
+        return coorganizer.username;
+      });
 
-          createAssociationInstances(event, [
-            {
-              model: 'coorg',
-              instances: req.body.coorganizers
-            },
-            {
-              model: 'mentorRequest',
-              instances: req.body.mentorRequests
-            }
-          ]);
+      userClient.get.byUsernames(usernames, function (err, users) {
+        var coorgs = users.users.map(function (user) {
+          return {
+            userId: user.id
+          };
+        });
 
-          hatchet.send('create_event', {
-            eventId: event.getDataValue('id'),
-            userId: req.session.user.id,
-            username: req.session.user.username,
-            email: req.session.user.email,
-            locale: req.session.user.prefLocale,
-            sendEventCreationEmails: req.session.user.sendEventCreationEmails
-          });
+        db.event.create(req.body)
+          .then(function (event) { // Event is created
 
-          return event;
-        })
-        .then(function (event) { // Find all pre-existing tags
-          // Store a refrence for use later in the promise chain
-          eventDAO = event;
+            hatchet.send('create_event', {
+              eventId: event.getDataValue('id'),
+              userId: req.session.user.id,
+              username: req.session.user.username,
+              email: req.session.user.email,
+              locale: req.session.user.prefLocale,
+              sendEventCreationEmails: req.session.user.sendEventCreationEmails
+            });
 
-          return storeTags(tagsToStore);
-        })
-        .then(function (tags) {
-          // Associate tags with the event
-          return eventDAO.setTags(tags);
-        })
-        .then(function () {
-          res.json({
-            message: 'Event created.',
-            id: eventDAO.id
-          });
-        })
-        .catch(function(err) {
-          res.json(500, {
-            error: err.toString()
+            return event;
+          })
+          .then(function (event) {
+            return createAssociations(event, 'mentorRequest', req.body.mentorRequests);
+          })
+          .then(function (event) {
+            return createAssociations(event, 'coorg', coorgs);
+          })
+          .then(function (event) { // Find all pre-existing tags
+            // Store a refrence for use later in the promise chain
+            eventDAO = event;
+
+            return storeTags(tagsToStore);
+          })
+          .then(function (tags) {
+            // Associate tags with the event
+            return eventDAO.setTags(tags);
+          })
+          .then(function () {
+            res.json({
+              message: 'Event created.',
+              id: eventDAO.id
+            });
+          })
+          .catch(function(err) {
+            console.log(err.stack);
+            res.json(500, {
+              error: err.toString()
+            });
           });
         });
     },
