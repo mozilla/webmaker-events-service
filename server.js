@@ -14,7 +14,7 @@ if (!env.get('DB_CONNECTIONSTRING') && env.get('cleardbDatabaseUrl')) {
   env.set('DB_CONNECTIONSTRING', env.get('cleardbDatabaseUrl').replace('?reconnect=true', ''));
 }
 
-var db = require('./models')(env.get('db'));
+var db = require('./models')(env.get('db'), env.get('LOGIN_URL_WITH_AUTH'), env.get('EVENTS_FRONTEND_URL'));
 var app = require('./config')(env, db);
 
 // Run server

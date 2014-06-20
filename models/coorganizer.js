@@ -13,6 +13,11 @@ module.exports = function(sequelize, t) {
       username: function() {
         return this._username;
       }
+    },
+    setterMethods: {
+      username: function(data) {
+        this._username = data;
+      }
     }
   });
 
