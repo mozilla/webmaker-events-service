@@ -111,6 +111,25 @@ module.exports = function (db, userClient) {
     });
   }
 
+  function associationsToCreate(eventId, values) {
+    return values.filter(function(a) {
+      return typeof a.id === "undefined";
+    }).map(function(a) {
+      a.EventId = eventId;
+      return a;
+    });
+  }
+
+  function associationsToDelete(events, newValues) {
+    return events.filter(function(event) {
+      return !newValues.some(function(nvalue) {
+        return event.id === nvalue.id;
+      });
+    }).map(function(event) {
+      return event.id;
+    });
+  }
+
   // Check if a user has write access to an event.
 
   function isAuthorized(req, eventInstance) {
@@ -334,7 +353,17 @@ module.exports = function (db, userClient) {
 
       // First, find the event
       db.event
-        .find(id)
+        .find({
+          where: {
+            id: req.params.id
+          },
+          include: [
+            db.coorg,
+            db.coorgRequest,
+            db.mentor,
+            db.mentorRequest
+          ]
+        })
         .success(function (eventInstance) {
 
           // No event
@@ -347,8 +376,58 @@ module.exports = function (db, userClient) {
             return res.send(403, 'You are not authorized to edit this event');
           }
 
+          var coorganizersToCreate = associationsToCreate(
+            eventInstance.id,
+            updatedAttributes.coorganizers
+          );
+
+          var coorganizersToDelete = associationsToDelete(
+            eventInstance.coorganizers,
+            updatedAttributes.coorganizers
+          );
+
+          var mentorsToDelete = associationsToDelete(
+            eventInstance.mentors,
+            updatedAttributes.mentors
+          );
+
+          var mentorRequestsToCreate = associationsToCreate(
+            eventInstance.id,
+            updatedAttributes.mentorRequests
+          );
+
+          var mentorRequestsToDelete = associationsToDelete(
+            eventInstance.mentorRequests,
+            updatedAttributes.mentorRequests
+          );
+
           eventInstance
             .updateAttributes(updatedAttributes)
+            .then(function() {
+              if (coorganizersToCreate.length) {
+                return db.coorg.bulkCreate(coorganizersToCreate);
+              }
+            })
+            .then(function() {
+              if (coorganizersToDelete.length) {
+                return db.coorg.destroy({ id: { in: coorganizersToDelete } });
+              }
+            })
+            .then(function() {
+              if (mentorsToDelete.length) {
+                return db.mentor.destroy({ id: { in: mentorsToDelete } });
+              }
+            })
+            .then(function() {
+              if (mentorRequestsToCreate.length) {
+                return db.mentorRequest.bulkCreate(mentorRequestsToCreate);
+              }
+            })
+            .then(function() {
+              if (mentorRequestsToDelete.length) {
+                return db.mentorRequest.destroy({ id: { in: mentorRequestsToDelete } });
+              }
+            })
             .then(function () {
               return storeTags(updatedAttributes.tags);
             })
@@ -356,6 +435,7 @@ module.exports = function (db, userClient) {
               eventInstance.setTags(tagDAOs);
               res.send('Event record updated');
             }, function fail(error) {
+              console.log(error.stack);
               res.json(500, error);
             });
         })
