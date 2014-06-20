@@ -92,6 +92,25 @@ module.exports = function (db, userClient) {
     });
   }
 
+  function createAssociations(event, type, instances) {
+    return new Promise(function (resolve, reject) {
+      var model = db[type];
+      var emailsUsernames = [];
+
+      instances.forEach(function (instance) {
+        instance.EventId = event.id
+      });
+
+      model
+        .bulkCreate(instances)
+        .then(function success(data) {
+          resolve.call(null, event);
+        }, function failure(err) {
+          reject.call(null, err);
+        });
+    });
+  }
+
   // Check if a user has write access to an event.
 
   function isAuthorized(req, eventInstance) {
@@ -226,12 +245,20 @@ module.exports = function (db, userClient) {
               });
 
               event.coorganizers.forEach(function(c) {
-                c._username = usersById[c.userId].username;
-                c._avatar = usersById[c.userId].avatar;
+                var user = usersById[c.userId];
+                if (!user) {
+                  return;
+                }
+                c._username = user.username;
+                c._avatar = user.avatar;
               });
               event.mentors.forEach(function(m) {
-                m._username = usersById[m.userId].username;
-                m._avatar = usersById[m.userId].avatar;
+                var user = usersById[m.userId];
+                if (!user) {
+                  return;
+                }
+                m._username = user.username;
+                m._avatar = user.avatar;
               });
 
               return res.json(event);
@@ -271,6 +298,12 @@ module.exports = function (db, userClient) {
 
           return event;
         })
+        .then(function (event) {
+          return createAssociations(event, 'mentorRequest', req.body.mentorRequests);
+        })
+        .then(function (event) {
+          return createAssociations(event, 'coorg', req.body.coorganizers);
+        })
         .then(function (event) { // Find all pre-existing tags
           // Store a refrence for use later in the promise chain
           eventDAO = event;
@@ -288,6 +321,7 @@ module.exports = function (db, userClient) {
           });
         })
         .catch(function(err) {
+          console.log(err.stack);
           res.json(500, {
             error: err.toString()
           });
