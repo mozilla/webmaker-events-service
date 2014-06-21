@@ -1,6 +1,6 @@
 {
   "name": "webmaker-events-service",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "dependencies": {
     "Faker": "0.5.11",
     "MD5": "1.2.0",
