@@ -132,7 +132,7 @@ module.exports = function (db, userClient) {
 
   // Check if a user has write access to an event.
 
-  function isAuthorized(req, eventInstance) {
+  function isEventOrganizer(req, eventInstance) {
     return (req.session.user && req.devAdmin) ||
            (req.session.user && req.session.user.isAdmin) ||
            (req.session.user && eventInstance.organizer === req.session.user.email);
@@ -372,7 +372,8 @@ module.exports = function (db, userClient) {
           }
 
           // Authentication
-          if (!isAuthorized(req, eventInstance)) {
+          if (!isEventOrganizer(req, eventInstance) &&
+              !eventInstance.isCoorganizer(req.session.user && req.session.user.id)) {
             return res.send(403, 'You are not authorized to edit this event');
           }
 
@@ -457,7 +458,7 @@ module.exports = function (db, userClient) {
           }
 
           // Authentication
-          if (!isAuthorized(req, eventInstance)) {
+          if (!isEventOrganizer(req, eventInstance)) {
             return res.send(403, 'You are not authorized to edit this event');
           }
 

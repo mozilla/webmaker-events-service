@@ -107,5 +107,13 @@ module.exports = function(sequelize, t) {
       defaultValue: false,
       allowNull: false
     }
+  }, {
+    instanceMethods: {
+      isCoorganizer: function(userId) {
+        return this.coorganizers.some(function(c) {
+          return c.userId === userId;
+        });
+      }
+    }
   });
 };
