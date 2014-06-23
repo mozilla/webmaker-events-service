@@ -73,27 +73,52 @@ module.exports = function(options, login_url_with_auth, events_url) {
   });
 
   Coorg.hook('beforeBulkCreate', function(records, fields, callback) {
-    var usernames = records.map(function(coorg) {
+
+    var usernames = records.map(function (coorg) {
       return coorg._username;
     });
 
-    userClient.get.byUsernames(usernames, function(err, users) {
-      if (err) {
-        return callback(err);
-      }
+    var event_ids = records.map(function (coorg) {
+      return coorg.EventId;
+    });
 
-      var usersByUsername = {};
-      users.users.forEach(function(user) {
-        usersByUsername[user.username] = user;
+    Event.findAll({ id: event_ids })
+    .then(function(events) {
+      var eventsById = {};
+      events.forEach(function(event) {
+        eventsById[event.id] = event;
       });
 
-      records = records.filter(function(coorg) {
-        return !!usersByUsername[coorg._username];
-      }).map(function(coorg) {
-        coorg.userId = usersByUsername[coorg._username].id;
-      });
+      userClient.get.byUsernames(usernames, function(err, users) {
+        if (err) {
+          return callback(err);
+        }
+        var usersByUsername = {};
+        users.users.forEach(function(user) {
+          usersByUsername[user.username] = user;
+        });
+        records = records.filter(function(coorg) {
+          return !!usersByUsername[coorg._username];
+        }).map(function(coorg) {
+          coorg.userId = usersByUsername[coorg._username].id;
+          return coorg;
+        });
 
-      callback(null, records, fields);
+        records.forEach(function (coorg) {
+          var user = usersByUsername[coorg._username];
+          var data = {
+            sendEmail: user ? user.sendMentorRequestEmails : true,
+            username: user.username,
+            email: user.email,
+            eventName: eventsById[coorg.EventId].title,
+            eventUrl: events_url + '/#!/events/' + coorg.EventId,
+            eventEditUrl: events_url + '/#!/edit/' + coorg.EventId,
+            locale: user.prefLocale,
+          };
+          hatchet.send('event_coorganizer_added', data);
+        });
+        callback(null, records, fields);
+      });
     });
   });
 
