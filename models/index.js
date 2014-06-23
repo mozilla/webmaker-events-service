@@ -44,8 +44,8 @@ module.exports = function(options, login_url_with_auth, events_url) {
   var Attendee = sequelize.import(__dirname + '/attendee.js');
 
   // One-to-Many
-  Event.hasMany(Attendee, {as: 'Attendees', foreignKey: 'eventID'});
-  Attendee.belongsTo(Event, {as: 'Event', foreignKey: 'eventID'});
+  Event.hasMany(Attendee, {foreignKey: 'eventID'});
+  Attendee.belongsTo(Event, {foreignKey: 'id'});
 
   Event.hasMany(Coorg);
   Coorg.belongsTo(Event);
