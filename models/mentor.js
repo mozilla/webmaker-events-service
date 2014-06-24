@@ -1,6 +1,9 @@
 module.exports = function(sequelize, t) {
 
   return sequelize.define('Mentor', {
+    bio: {
+      type: t.STRING
+    },
     userId: {
       type: t.INTEGER,
       allowNull: false

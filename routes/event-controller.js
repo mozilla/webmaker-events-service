@@ -120,6 +120,24 @@ module.exports = function (db, userClient) {
     });
   }
 
+  function updateAssociations(oldValues, updatedValues) {
+    return oldValues.map(function(old) {
+      var update = updatedValues.filter(function(update) {
+        return old.id === update.id;
+      })[0];
+
+      if (!update) {
+        return old;
+      }
+
+      Object.keys(old.values).forEach(function(key) {
+        old[key] = update[key];
+      });
+
+      return old;
+    });
+  }
+
   function associationsToDelete(events, newValues) {
     return events.filter(function(event) {
       return !newValues.some(function(nvalue) {
@@ -387,6 +405,8 @@ module.exports = function (db, userClient) {
             updatedAttributes.coorganizers
           );
 
+          updateAssociations(eventInstance.mentors, updatedAttributes.mentors);
+
           var mentorsToDelete = associationsToDelete(
             eventInstance.mentors,
             updatedAttributes.mentors
@@ -412,6 +432,15 @@ module.exports = function (db, userClient) {
             .then(function() {
               if (coorganizersToDelete.length) {
                 return db.coorg.destroy({ id: { in: coorganizersToDelete } });
+              }
+            })
+            .then(function() {
+              if (eventInstance.mentors.length) {
+                return Promise.all(
+                  eventInstance.mentors.map(function(mentor) {
+                    return mentor.save(['bio']);
+                  })
+                );
               }
             })
             .then(function() {
