@@ -87,7 +87,9 @@ module.exports = function(options, login_url_with_auth, events_url) {
         usersByUsername[user.username] = user;
       });
 
-      records = records.map(function(coorg) {
+      records = records.filter(function(coorg) {
+        return !!usersByUsername[coorg._username];
+      }).map(function(coorg) {
         coorg.userId = usersByUsername[coorg._username].id;
       });
 
