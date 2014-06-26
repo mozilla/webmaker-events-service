@@ -1,48 +1,72 @@
 var Promise = require('bluebird');
 
-module.exports = function(db) {
+module.exports = function(db, userClient) {
   return {
     rsvp: {
-      // TODO: Add usernames and avatars to attendee data
       get: {
         // /rsvp/event/:id
         event: function(req, res) {
           var eventID = parseInt(req.params.id, 10);
+          var eventData;
+          var coorganizers = [];
+          var user = req.session.user;
 
-          // Grab attendee info if it's public, requesting user is admin, or user created event
+          // Grab attendee info if it's public, requesting user is admin/coorg, or user created event
 
-          db.event
-            .find({
-              where: {
-                id: eventID
-              }
-            })
-            .then(function success(event) {
-              var user = req.session.user;
+          db.event.find({
+            where: {
+              id: eventID
+            },
+            include: [ db.coorg, db.attendee ]
+          })
+          .then(function success (event) {
+            if (!event) {
+              res.send(404);
+            } else {
+              eventData = event.dataValues;
+            }
 
-              if (!event) {
-                res.send(404);
-              }
-
-              if (event.areAttendeesPublic ||
-                (user && (user.isAdmin || user.username === event.organizerId))) {
-                return db.attendee.findAll({
-                  where: {
-                    eventID: eventID
-                  }
-                });
-              } else {
-                res.send(401);
-              }
-            }, function fail() {
-              res.send(500);
-            })
-            .then(function success(attendees) {
-              res.json(attendees);
-            }, function fail() {
-              res.send(500);
+            eventData.coorganizers.forEach(function (coorg, index) {
+              coorganizers.push(coorg.dataValues.userId);
             });
 
+            if (eventData.areAttendeesPublic ||
+              (user && (user.isAdmin || user.username === eventData.organizerId || coorganizers.indexOf(user.id) > -1))) {
+
+              var userIDs = [];
+              var userHash = {};
+
+              eventData.attendees.forEach(function (attendee) {
+                userIDs.push(attendee.userID);
+                userHash[attendee.userID] = attendee.dataValues;
+              });
+
+              // Get usernames and avatars from user IDs
+
+              userClient.get.byIds(userIDs, function (err, users) {
+                if (err) {
+                  res.send(500, 'Login service is down.');
+                } else {
+                  users.users.forEach(function (user) {
+                    userHash[user.id].username = user.username;
+                    userHash[user.id].avatar = user.avatar;
+                  });
+
+                  var userArray = [];
+
+                  for (var key in userHash) {
+                    userArray.push(userHash[key]);
+                  }
+
+                  res.json(userArray);
+                }
+              });
+            } else {
+              res.send(401);
+            }
+          }, function fail() {
+            res.send(500);
+          });
         },
         // /rsvp/user/:id
         user: function(req, res) {
