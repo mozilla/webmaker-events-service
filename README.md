@@ -205,8 +205,7 @@ For protected routes, make sure you have a session set.
     <td><code>GET</code></td>
     <td>/events</td>
     <td>
-      <code>limit</code> (Max array size. e.g. 30. Defaults to no limit.),
-      <br>
+      <strong>Query parameters:</strong><br><br>
       <code>order</code> (Sort order of returned array. e.g. 'beginDate DESC'. Defaults to 'beginDate')
       <br>
       <code>organizerId</code> (Constrain to events created by a user. e.g. 'mike_danton')
@@ -217,7 +216,11 @@ For protected routes, make sure you have a session set.
       <br>
       <code>tag</code> (Filter results to a single tag name)
       <br>
-      <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)
+      <code>search</code> (Restrict to events with descriptions and/or titles that match the search term.)
+      <br>
+      <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)<br><br>
+      <strong>Custom headers:</strong><br><br>
+      Pagination is achieved through standard <a href="http://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-latest.html">range request headers</a> (eg: Accept-Ranges, Range-Unit, Content-Range, Range).
     </td>
     <td>No<br><br>Note: Only logged in admins will get user's email.</td>
     <td>Returns an array of events.</td>

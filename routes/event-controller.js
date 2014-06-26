@@ -160,15 +160,19 @@ module.exports = function (db, userClient) {
 
     get: {
       all: function (req, res) {
-        var limit = req.query.limit || null;
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
         var userId = req.query.userId;
         var after = req.query.after;
         var dedupe = req.query.dedupe || false;
         var tagFilter = req.query.tag || null;
+        var searchTerm = req.query.search || false;
 
         var query = {};
+        var limit;
+        var rangeStart;
+        var rangeEnd;
+        var offset;
 
         if (after) {
           if ((new Date(after)).toString() !== 'Invalid Date') {
@@ -187,11 +191,25 @@ module.exports = function (db, userClient) {
           query.organizerId = organizerId;
         }
 
+        if (searchTerm) {
+          query = Sequelize.and(
+            query,
+            Sequelize.or({
+              title: {like: '%' + searchTerm +'%'}
+            }, {
+              description: {like: '%' + searchTerm +'%'}
+            })
+          );
+        }
+
         if (organizerId && userId) {
-          query = Sequelize.or(
-            { organizerId: organizerId },
-            { 'Mentors.userId': userId },
-            { 'Coorganizers.userId': userId }
+          query = Sequelize.and(
+            query,
+            Sequelize.or(
+              { organizerId: organizerId },
+              { 'Mentors.userId': userId },
+              { 'Coorganizers.userId': userId }
+            )
           );
         }
 
@@ -199,9 +217,18 @@ module.exports = function (db, userClient) {
           query['Tags.name'] = tagFilter;
         }
 
+        // Parse out numerical ranges from "range" header
+        if (req.headers.range) {
+          rangeStart = parseInt(req.headers.range.split('-')[0], 10);
+          rangeEnd = parseInt(req.headers.range.split('-')[1], 10);
+
+          limit = rangeEnd - rangeStart + 1;
+        }
+
         db.event
-          .findAll({
-            limit: limit,
+          .findAndCountAll({
+            offset: rangeStart || null,
+            limit: limit || null,
             order: order,
             where: query,
             include: [
@@ -214,7 +241,7 @@ module.exports = function (db, userClient) {
             ]
           })
           .success(function (data) {
-            var dataCopy = JSON.parse(JSON.stringify(data));
+            var dataCopy = JSON.parse(JSON.stringify(data.rows));
 
             dataCopy.forEach(function (item, index) {
               // Only show emails for logged in admins to protect user privacy
@@ -235,6 +262,13 @@ module.exports = function (db, userClient) {
             }
 
             if (!req.query.csv) {
+              var contentRange = req.headers.range + '/' + data.count;
+
+              // Headers for pagination
+              res.header('Accept-Ranges', 'items');
+              res.header('Range-Unit', 'items');
+              res.header('Content-Range', contentRange);
+
               res.json(dataCopy);
             } else {
               res.setHeader('Content-Type', 'text/csv');
