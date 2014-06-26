@@ -2,6 +2,7 @@ var hatchet = require('hatchet');
 var jsonToCSV = require('../util/json-to-csv');
 var _ = require('lodash');
 var Promise = require('bluebird');
+var Sequelize = require('sequelize');
 
 module.exports = function (db, userClient) {
 
@@ -163,6 +164,7 @@ module.exports = function (db, userClient) {
         var limit = req.query.limit || null;
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
+        var userId = req.query.userId;
         var after = req.query.after;
         var dedupe = req.query.dedupe || false;
 
@@ -185,15 +187,27 @@ module.exports = function (db, userClient) {
           query.organizerId = organizerId;
         }
 
+        if (organizerId && userId) {
+          query = Sequelize.or(
+            { organizerId: organizerId },
+            { 'Mentors.userId': userId },
+            { 'Coorganizers.userId': userId }
+          );
+        }
+
         db.event
           .findAll({
             limit: limit,
             order: order,
             where: query,
-            include: [{
-              model: db.tag,
-              attributes: ['name']
-            }]
+            include: [
+              db.coorg,
+              db.mentor,
+              {
+                model: db.tag,
+                attributes: ['name']
+              }
+            ]
           })
           .success(function (data) {
             var dataCopy = JSON.parse(JSON.stringify(data));
