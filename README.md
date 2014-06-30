@@ -283,6 +283,13 @@ For protected routes, make sure you have a session set.
   </tr>
   <tr>
     <td><code>GET</code></td>
+    <td>/tags</td>
+    <td><code>like</code> Query for similar tag names.</td>
+    <td>No</td>
+    <td>Get an array of all event tag names similar to a query.</td>
+  </tr>
+  <tr>
+    <td><code>GET</code></td>
     <td>/dev/fake</td>
     <td><code>amount</code> (number of events, e.g. 15)</code></td>
     <td>DEV=true on server config</td>

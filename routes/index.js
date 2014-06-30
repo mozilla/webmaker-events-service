@@ -3,6 +3,7 @@ module.exports = function (env, app, models, userClient) {
   var events = require('./event-controller')(models, userClient);
   var dev = require('./dev-controller')(models);
   var attendee = require('./attendee-controller.js')(models, userClient);
+  var tags = require('./tag-controller.js')(models);
   var confirmation = require('./confirmation.js')(models, userClient);
   var auth = require('./auth')(env);
   var cors = require('./cors')(env);
@@ -29,6 +30,9 @@ module.exports = function (env, app, models, userClient) {
   app.get('/rsvp/user/:id', cors.withAuth, auth.verifyUser, attendee.rsvp.get.user);
   app.post('/rsvp', cors.withAuth, auth.verifyUser, attendee.rsvp.post);
   app.delete('/rsvp', cors.withAuth, auth.verifyUser, attendee.rsvp.delete);
+
+  // Tags
+  app.get('/tags', cors.readOnly, tags.get);
 
   // Login
   app.options('*', cors.withAuth);
