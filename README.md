@@ -215,6 +215,8 @@ For protected routes, make sure you have a session set.
       <br>
       <code>dedupe</code> (Only allow 1 event of per event title when set to `true`. Defaults to `false`.)
       <br>
+      <code>tag</code> (Filter results to a single tag name)
+      <br>
       <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)
     </td>
     <td>No<br><br>Note: Only logged in admins will get user's email.</td>

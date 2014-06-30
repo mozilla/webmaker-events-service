@@ -167,6 +167,7 @@ module.exports = function (db, userClient) {
         var userId = req.query.userId;
         var after = req.query.after;
         var dedupe = req.query.dedupe || false;
+        var tagFilter = req.query.tag || null;
 
         var query = {};
 
@@ -193,6 +194,10 @@ module.exports = function (db, userClient) {
             { 'Mentors.userId': userId },
             { 'Coorganizers.userId': userId }
           );
+        }
+
+        if (tagFilter) {
+          query['Tags.name'] = tagFilter;
         }
 
         db.event
