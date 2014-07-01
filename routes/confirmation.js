@@ -7,7 +7,7 @@ module.exports = function (db, userClient) {
       // Error handling
       function onError(err) {
         return next(err);
-      };
+      }
 
       // Look up user, then add new mentor, then delete mentor request
       function convertRequestToMentor(mentorRequest) {
@@ -29,15 +29,15 @@ module.exports = function (db, userClient) {
                 })
                 .error(onError);
             })
-            .error(onError)
-        })
+            .error(onError);
+        });
       }
 
       db.mentorRequest
         .find({ where: { token: token } })
         .success( function (mentorRequest) {
           if (confirmed) {
-            convertRequestToMentor(mentorRequest)
+            convertRequestToMentor(mentorRequest);
           } else {
             db.mentorRequest
               .update({ denied: true })
