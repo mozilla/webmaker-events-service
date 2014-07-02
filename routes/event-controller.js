@@ -24,20 +24,6 @@ module.exports = function (db, userClient) {
   }
 
   /**
-   * Turn full tag records into a simple array of strings
-   * @param  {Array} tags Array of tag record objects
-   * @return {Array}      Array of tags as Strings
-   */
-
-  function massageTags(tags) {
-    tags.forEach(function (tag, index) {
-      tags[index] = tag.name;
-    });
-
-    return tags;
-  }
-
-  /**
    * Store unrecorded tags in DB and return a promise
    *   with tag DAOs if storage succeeded.
    * @param  {Array} tagsToStore Array of tags as Strings
@@ -240,39 +226,26 @@ module.exports = function (db, userClient) {
               }
             ]
           })
-          .success(function (data) {
-            var dataCopy = JSON.parse(JSON.stringify(data.rows));
-
-            dataCopy.forEach(function (item, index) {
-              // Only show emails for logged in admins to protect user privacy
-              if (!req.session.user || !req.session.user.isAdmin) {
-                delete dataCopy[index].organizer;
-              }
-
-              // Don't return deprecated values to client
-              delete dataCopy[index].beginTime;
-              delete dataCopy[index].endTime;
-
-              dataCopy[index].tags = massageTags(dataCopy[index].tags);
-            });
-
+          .success(function (events) {
             // Don't return multiple events with the same title when dedupe is enabled
             if (dedupe) {
-              dataCopy = _.uniq(dataCopy, 'title');
+              events.rows = _.uniq(events.rows, 'title');
             }
 
+            var publicData = _.invoke(events.rows, 'toFilteredJSON', true);
+
             if (!req.query.csv) {
-              var contentRange = req.headers.range + '/' + data.count;
+              var contentRange = req.headers.range + '/' + events.count;
 
               // Headers for pagination
               res.header('Accept-Ranges', 'items');
               res.header('Range-Unit', 'items');
               res.header('Content-Range', contentRange);
 
-              res.json(dataCopy);
+              res.json(publicData);
             } else {
-              res.setHeader('Content-Type', 'text/csv');
-              res.send(jsonToCSV(dataCopy));
+              res.type('text/csv');
+              res.send(jsonToCSV(publicData));
             }
 
           })
@@ -289,9 +262,11 @@ module.exports = function (db, userClient) {
             },
             include: [
               db.coorg,
-              db.coorgRequest,
               db.mentor,
-              db.mentorRequest,
+              {
+                model: db.mentorRequest,
+                attributes: ['id', 'email', 'denied', 'EventId']
+              },
               {
                 model: db.tag,
                 attributes: ['name']
@@ -303,13 +278,13 @@ module.exports = function (db, userClient) {
               return res.send(404);
             }
 
-            event = _.merge(event, {
-              tags: massageTags(event.tags)
-            });
+            // Only organizers and co-organizers should see mentor requests
+            var showPrivateData = (isEventOrganizer(req, event) ||
+                event.isCoorganizer(req.session.user && req.session.user.id))
 
             if (!event.coorganizers.length &&
                 !event.mentors.length) {
-              return res.json(event);
+              return res.json(event.toFilteredJSON(showPrivateData));
             }
 
             // Pull out userIds from coorganizers and mentors
@@ -350,7 +325,7 @@ module.exports = function (db, userClient) {
                 m._avatar = user.avatar;
               });
 
-              return res.json(event);
+              res.json(event.toFilteredJSON(showPrivateData));
             });
 
           }, function error(err) {
@@ -429,7 +404,6 @@ module.exports = function (db, userClient) {
           },
           include: [
             db.coorg,
-            db.coorgRequest,
             db.mentor,
             db.mentorRequest
           ]
@@ -562,7 +536,7 @@ module.exports = function (db, userClient) {
               res.send('Event deleted');
             })
             .error(function (err) {
-              res.json = (500, err);
+              res.json(500, err);
             });
         })
         .error(function (err) {

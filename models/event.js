@@ -1,7 +1,34 @@
 module.exports = function(sequelize, t) {
 
   var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-44x44.png');
+  var _ = require('lodash');
   var md5 = require('MD5');
+  var publicFields = [
+    'organizerAvatar',
+    'id',
+    'title',
+    'description',
+    'address',
+    'latitude',
+    'longitude',
+    'city',
+    'country',
+    'attendees',
+    'ageGroup',
+    'skillLevel',
+    'beginDate',
+    'endDate',
+    'registerLink',
+    'picture',
+    'organizerId',
+    'featured',
+    'areAttendeesPublic',
+    'createdAt',
+    'updatedAt',
+    'coorganizers',
+    'mentors',
+    'tags'
+  ];
 
   return sequelize.define('Event', {
     title: t.STRING,
@@ -118,6 +145,20 @@ module.exports = function(sequelize, t) {
         return this.coorganizers.some(function(c) {
           return c.userId === userId;
         });
+      },
+      toFilteredJSON: function(showPrivate) {
+        // This is gross but necessary:
+        // http://stackoverflow.com/questions/24431213/get-only-values-from-rows-and-associations-with-sequelize#comment37831440_24431213
+        var event = JSON.parse(JSON.stringify(this));
+
+        // return tags as ["a"] instead of [{"name": "a"}]
+        event.tags = _.pluck(event.tags, 'name');
+
+        if (!showPrivate) {
+          return _.pick(event, publicFields);
+        }
+
+        return event;
       }
     }
   });
