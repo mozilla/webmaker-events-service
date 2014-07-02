@@ -12,7 +12,7 @@ module.exports = function(options, login_url_with_auth, events_url) {
   });
 
   // MySQL with settings
-  if (options.dialect == 'mysql' && options.database) {
+  if (options.dialect === 'mysql' && options.database) {
     sequelize = new Sequelize(options.database, options.user, options.password, {
       logging: console.log,
       host: options.host  || 'localhost',

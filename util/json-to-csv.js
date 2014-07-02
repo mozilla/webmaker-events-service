@@ -1,5 +1,5 @@
 module.exports = function (objArray) {
-  var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+  var array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
   var str = '';
 
   for (var key in objArray[0]) {
@@ -13,7 +13,9 @@ module.exports = function (objArray) {
     var line = '';
 
     for (var index in array[i]) {
-      if (line !== '') line += ',';
+      if (line !== '') {
+        line += ',';
+      }
 
       var noLineBreaks = array[i][index];
 

@@ -96,10 +96,9 @@ module.exports = function (db, userClient) {
   function createAssociations(event, type, instances) {
     return new Promise(function (resolve, reject) {
       var model = db[type];
-      var emailsUsernames = [];
 
       instances.forEach(function (instance) {
-        instance.EventId = event.id
+        instance.EventId = event.id;
       });
 
       model
@@ -114,7 +113,7 @@ module.exports = function (db, userClient) {
 
   function associationsToCreate(eventId, values) {
     return values.filter(function(a) {
-      return typeof a.id === "undefined";
+      return typeof a.id === 'undefined';
     }).map(function(a) {
       a.EventId = eventId;
       return a;
@@ -272,7 +271,7 @@ module.exports = function (db, userClient) {
 
             event = _.merge(event, {
               tags: massageTags(event.tags)
-            })
+            });
 
             if (!event.coorganizers.length &&
                 !event.mentors.length) {
@@ -292,7 +291,7 @@ module.exports = function (db, userClient) {
                 return res.send(500, err.toString());
               }
               if (!users || !Array.isArray(users.users)) {
-                return res.send(500, "Couldn't find any user ids in login database");
+                return res.send(500, 'Couldn\'t find any user ids in login database');
               }
 
               var usersById = {};

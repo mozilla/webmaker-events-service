@@ -94,7 +94,7 @@ module.exports = function(sequelize, t) {
       get: function() {
         return 'https://secure.gravatar.com/avatar/' +
                 md5(this.getDataValue('organizer')) +
-                "?s=100&d=" + defaultGravatar;
+                '?s=100&d=' + defaultGravatar;
       }
     },
     featured: {

@@ -1,3 +1,5 @@
+/*global it: false, describe: false, before: false, after: false */
+
 var Habitat = require('habitat');
 var should = require('should');
 var supertest = require('supertest');
@@ -16,13 +18,13 @@ describe('faker', function() {
 
   it('should generate a valid event', function(done) {
     var e = faker.event();
-    (e).should.be.an.Object;
+    (e).should.be.type('object');
     done();
   });
 
   it('should generate an invalid event', function(done) {
     var e = faker.invalidEvent();
-    (e).should.be.an.Object;
+    (e).should.be.type('object');
     done();
   });
 
