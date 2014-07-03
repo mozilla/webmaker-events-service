@@ -3,6 +3,7 @@
   "version": "0.3.5",
   "dependencies": {
     "async": "0.9.0",
+    "csv": "0.4.0",
     "MD5": "1.2.0",
     "bluebird": "1.2.4",
     "express": "3.4.7",
@@ -13,6 +14,7 @@
     "mysql": "2.1.0",
     "newrelic": "1.5.5",
     "sequelize": "1.7.9",
+    "node-geocoder": "2.5.3",
     "sqlite3": "2.2.0",
     "webmaker-auth": "0.1.1",
     "webmaker-user-client": "0.1.1",
