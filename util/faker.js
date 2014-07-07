@@ -6,11 +6,6 @@ module.exports = function () {
 
   // Generate a single event
   self.event = function () {
-    var futureDate = new Date();
-
-    // Create events 1 year in the future so they show up as upcoming events
-    futureDate.setFullYear(futureDate.getFullYear() + 1);
-
     return {
       title: faker.Company.bs(),
       description: faker.Lorem.paragraph(),
@@ -18,7 +13,7 @@ module.exports = function () {
       latitude: faker.Helpers.randomNumber(-90.0, 90.0),
       longitude: faker.Helpers.randomNumber(-180.0, 180.0),
       city: faker.Address.city(),
-      beginDate: futureDate,
+      beginDate: new Date(2015, Math.random() * 12, Math.random() * 28),
       country: faker.Name.firstName() + 'land',
       attendees: faker.Helpers.randomNumber(500),
       registerLink: 'https://' + faker.Internet.domainName() + '/eventpage',
