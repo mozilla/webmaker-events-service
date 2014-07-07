@@ -111,7 +111,18 @@ module.exports = function(sequelize, t) {
       type: t.BOOLEAN,
       defaultValue: false,
       allowNull: false
-    }
+    },
+    externalSource: {
+      type: t.STRING,
+      defaultValue: null
+    },
+    url: {
+      type: t.STRING,
+      defaultValue: null,
+      get: function() {
+        return this.getDataValue('url') || '#!/events/' + this.getDataValue('id');
+      }
+    },
   }, {
     instanceMethods: {
       isCoorganizer: function(userId) {
