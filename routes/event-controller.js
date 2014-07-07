@@ -158,7 +158,6 @@ module.exports = function (db, userClient) {
         var limit;
         var rangeStart;
         var rangeEnd;
-        var offset;
 
         if (after) {
           if ((new Date(after)).toString() !== 'Invalid Date') {
