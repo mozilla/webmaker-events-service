@@ -215,7 +215,9 @@ module.exports = function (db, userClient) {
           .findAndCountAll({
             offset: rangeStart || null,
             limit: limit || null,
-            order: order,
+            // need to wrap order in an array because of a sequelize v1.7.x bug
+            // https://github.com/sequelize/sequelize/issues/1596#issuecomment-39698213
+            order: [order],
             where: query,
             include: [
               db.coorg,
