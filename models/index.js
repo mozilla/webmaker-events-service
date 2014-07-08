@@ -171,6 +171,7 @@ module.exports = function(options, login_url_with_auth, events_url) {
 
   // Export models
   return {
+    sequelize: sequelize,
     attendee: Attendee,
     coorg: Coorg,
     coorgRequest: CoorgRequest,

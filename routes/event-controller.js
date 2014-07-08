@@ -276,7 +276,8 @@ module.exports = function (db, userClient) {
             ]
           })
           .then(function success(event) {
-            if (!event) {
+            // Don't allow editing/viewing of external events in details view
+            if (!event || event.externalSource) {
               return res.send(404);
             }
 
