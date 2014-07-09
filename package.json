@@ -1,6 +1,6 @@
 {
   "name": "webmaker-events-service",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "dependencies": {
     "MD5": "1.2.0",
     "bluebird": "1.2.4",
