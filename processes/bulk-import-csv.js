@@ -1,6 +1,6 @@
 /*
 **
-** bulkImport.js
+** bulk-import-csv.js
 **
 ** This script will import events from a comma separated value (CSV) text file.
 **

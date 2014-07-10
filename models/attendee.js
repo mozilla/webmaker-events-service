@@ -20,6 +20,11 @@ module.exports = function(sequelize, t) {
     didAttend: {
       type: t.BOOLEAN,
       allowNull: true // Prevent false negatives caused by user being checked in
+    },
+    sentEventReminder: {
+      type: t.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   });
 

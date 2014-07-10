@@ -2,7 +2,6 @@
 var request = require('request');
 var moment = require('moment');
 var Habitat = require('habitat');
-var sequelize = require('sequelize');
 
 Habitat.load();
 var env = new Habitat();

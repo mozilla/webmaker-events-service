@@ -8,7 +8,7 @@
     "bluebird": "1.2.4",
     "express": "3.4.7",
     "habitat": "1.1.0",
-    "hatchet": "0.1.0",
+    "hatchet": "0.2.2",
     "lodash": "2.4.1",
     "messina": "^0.1.2",
     "mysql": "2.1.0",
