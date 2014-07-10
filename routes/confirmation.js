@@ -49,6 +49,28 @@ module.exports = function (db, userClient) {
         })
         .error(onError);
 
+    },
+    verify: function(req, res, next) {
+      var token = req.params.token;
+      var eventId = req.query.eventId;
+
+      if ( !eventId ) {
+        return res.json(400, {"error": "eventId param is required"});
+      }
+
+      db.mentorRequest
+        .find({
+          where: {
+            token: token,
+            eventId: eventId
+          }
+        })
+        .success( function(mentorRequest) {
+          return res.json({ valid: !!mentorRequest });
+        })
+        .error( function(err) {
+          next(err);
+        });
     }
   };
 };
