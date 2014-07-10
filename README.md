@@ -255,31 +255,24 @@ For protected routes, make sure you have a session set.
   </tr>
   <tr>
     <td><code>GET</code></td>
-    <td>/rsvp/user/:id</td>
+    <td>/attendee/user/:id</td>
     <td></td>
-    <td>Persona (Users may only see their own RSVP list.)</td>
-    <td>Get a user's RSVP'd events.</td>
+    <td>Persona (Users may only see their own attendance list. Admins may see anyone's attendance info.)</td>
+    <td>Get a user's event attendance information.</td>
   </tr>
   <tr>
     <td><code>GET</code></td>
-    <td>/rsvp/event/:id</td>
+    <td>/attendee/event/:id</td>
     <td></td>
-    <td><strong>Private Lists:</strong> Persona (admin or event creator)</td>
+    <td>Lists for events with <code>areAttendeesPublic</code> set to false: Persona (admin or event creator)</td>
     <td>Get an event's attendee info.</td>
   </tr>
   <tr>
     <td><code>POST</code></td>
-    <td>/rsvp</td>
-    <td><code>userid</code> (ID number for user)<br><code>eventid</code> (ID number for event)</td>
-    <td>Persona (Users may only RSVP themselves)</td>
-    <td>RSVP a user to an event.</td>
-  </tr>
-  <tr>
-    <td><code>DELETE</code></td>
-    <td>/rsvp</td>
-    <td><code>userid</code> (ID number for user)<br><code>eventid</code> (ID number for event)</td>
-    <td>Persona (Users may only un-RSVP themselves)</td>
-    <td>Un-RSVP a user from an event.</td>
+    <td>/attendee</td>
+    <td>Must include either <code>userid</code> (numerical) or <code>email</code> (for non-user attendees only) and <code>eventid</code>.<br><br> <code>checkin</code> can be specified either <i>true</i> or <i>false</i>.<br> <code>rsvp</code> can be specified either <i>true</i> or <i>false</i>.</td>
+    <td>Persona (Users may edit their own attendance, admins can edit anybody's attendance, and event creators may edit any attendees for their events.)</td>
+    <td>Set a user's attendance info (RSVP and Check-in status) for an event.</td>
   </tr>
   <tr>
     <td><code>GET</code></td>

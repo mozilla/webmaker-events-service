@@ -3,7 +3,14 @@ module.exports = function(sequelize, t) {
   return sequelize.define('Attendee', {
     userID: {
       type: t.INTEGER,
-      allowNull: false
+      allowNull: true
+    },
+    email: {
+      type: t.STRING,
+      validate: {
+        isEmail: true
+      },
+      allowNull: true
     },
     didRSVP: {
       type: t.BOOLEAN,
