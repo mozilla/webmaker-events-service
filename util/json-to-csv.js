@@ -20,7 +20,7 @@ module.exports = function (objArray) {
       var noLineBreaks = array[i][index];
 
       if (typeof noLineBreaks === 'string') {
-        noLineBreaks = noLineBreaks.replace(/\n/g, ' ');
+        noLineBreaks = noLineBreaks.replace(/[\n\r]/g, ' ');
         noLineBreaks = '"' + noLineBreaks + '"';
       }
 
