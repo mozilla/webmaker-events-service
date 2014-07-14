@@ -1,5 +1,5 @@
 var hatchet = require('hatchet');
-var jsonToCSV = require('../util/json-to-csv');
+var json2csv = require('json2csv');
 var _ = require('lodash');
 var Promise = require('bluebird');
 var Sequelize = require('sequelize');
@@ -247,8 +247,14 @@ module.exports = function (db, userClient) {
 
               res.json(publicData);
             } else {
-              res.type('text/csv');
-              res.send(jsonToCSV(publicData));
+              json2csv({data: publicData, fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'attendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']}, function (err, csv) {
+                if (err) {
+                  res.send(500, err);
+                } else {
+                  res.type('text/csv');
+                  res.send(csv);
+                }
+              });
             }
 
           })
