@@ -45,7 +45,7 @@ module.exports = function(options, login_url_with_auth, events_url) {
 
   // One-to-Many
   Event.hasMany(Attendee, {foreignKey: 'eventID'});
-  Attendee.belongsTo(Event, {foreignKey: 'id'});
+  Attendee.belongsTo(Event, {foreignKey: 'eventID'});
 
   Event.hasMany(Coorg);
   Coorg.belongsTo(Event);
