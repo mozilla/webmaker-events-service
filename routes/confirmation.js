@@ -55,7 +55,7 @@ module.exports = function (db, userClient) {
       var eventId = req.query.eventId;
 
       if ( !eventId ) {
-        return res.json(400, {"error": "eventId param is required"});
+        return res.json(400, {'error': 'eventId param is required'});
       }
 
       db.mentorRequest

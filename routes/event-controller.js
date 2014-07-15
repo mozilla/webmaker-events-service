@@ -355,7 +355,7 @@ module.exports = function (db, userClient) {
 
             // Only organizers and co-organizers should see mentor requests
             var showPrivateData = (isEventOrganizer(req, event) ||
-                event.isCoorganizer(req.session.user && req.session.user.id))
+                event.isCoorganizer(req.session.user && req.session.user.id));
 
             if (!event.coorganizers.length &&
                 !event.mentors.length) {
