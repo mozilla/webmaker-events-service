@@ -142,6 +142,47 @@ module.exports = function (db, userClient) {
            (req.session.user && eventInstance.organizer === req.session.user.email);
   }
 
+  /**
+  * Create a CSV string from a specific object key's value
+  * @param  {Array} record Array of Objects
+  * @param  {String} key Property to serialize
+  * @return {String} CSV string
+  */
+  function simplifyRecord(record, key) {
+    var csvString = '';
+
+    record.forEach(function (item, index) {
+      if (index < record.length - 1) {
+        csvString += item[key] + ',';
+      } else {
+        csvString += item[key];
+      }
+    });
+
+    return csvString;
+  }
+
+  /**
+   * Turn an array into a CSV string
+   * @param  {Array} target
+   * @return {String}
+   */
+  function arrayToCSV(target) {
+    var csvString = '';
+
+    if (Array.isArray(target)) {
+      target.forEach(function (element, index) {
+        if (index < target.length - 1) {
+          csvString += element + ',';
+        } else {
+          csvString += element;
+        }
+      });
+    }
+
+    return csvString;
+  }
+
   return {
 
     get: {
@@ -238,46 +279,6 @@ module.exports = function (db, userClient) {
           });
         })
         .then(function (events) {
-          /**
-           * Create a CSV string from a specific object key's value
-           * @param  {Array} record Array of Objects
-           * @param  {String} key Property to serialize
-           * @return {String} CSV string
-           */
-          function simplifyRecord(record, key) {
-            var csvString = '';
-
-            record.forEach(function (item, index) {
-              if (index < record.length - 1) {
-                csvString += item[key] + ',';
-              } else {
-                csvString += item[key];
-              }
-            });
-
-            return csvString;
-          }
-
-          /**
-           * Turn an array into a CSV string
-           * @param  {Array} target
-           * @return {String}
-           */
-          function arrayToCSV(target) {
-            var csvString = '';
-
-            if (Array.isArray(target)) {
-              target.forEach(function (element, index) {
-                if (index < target.length - 1) {
-                  csvString += element + ',';
-                } else {
-                  csvString += element;
-                }
-              });
-            }
-
-            return csvString;
-          }
 
           // Don't return multiple events with the same title when dedupe is enabled
           if (dedupe) {
