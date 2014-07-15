@@ -229,6 +229,47 @@ module.exports = function (db, userClient) {
             ]
           })
           .success(function (events) {
+            /**
+             * Create a CSV string from a specific object key's value
+             * @param  {Array} record Array of Objects
+             * @param  {String} key Property to serialize
+             * @return {String} CSV string
+             */
+            function simplifyRecord(record, key) {
+              var csvString = '';
+
+              record.forEach(function (item, index) {
+                if (index < record.length - 1) {
+                  csvString += item[key] + ',';
+                } else {
+                  csvString += item[key];
+                }
+              });
+
+              return csvString;
+            }
+
+            /**
+             * Turn an array into a CSV string
+             * @param  {Array} target
+             * @return {String}
+             */
+            function arrayToCSV(target) {
+              var csvString = '';
+
+              if (Array.isArray(target)) {
+                target.forEach(function (element, index) {
+                  if (index < target.length - 1) {
+                    csvString += element + ',';
+                  } else {
+                    csvString += element;
+                  }
+                });
+              }
+
+              return csvString;
+            }
+
             // Don't return multiple events with the same title when dedupe is enabled
             if (dedupe) {
               events.rows = _.uniq(events.rows, 'title');
@@ -246,7 +287,17 @@ module.exports = function (db, userClient) {
 
               res.json(publicData);
             } else {
-              json2csv({data: publicData, fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'attendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']}, function (err, csv) {
+              var flattenedData = [];
+
+              publicData.forEach(function (event, index) {
+                event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
+                event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
+                event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
+
+                flattenedData.push(event);
+              });
+
+              json2csv({data: flattenedData, fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'attendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']}, function (err, csv) {
                 if (err) {
                   res.send(500, err);
                 } else {
@@ -289,7 +340,7 @@ module.exports = function (db, userClient) {
 
             // Only organizers and co-organizers should see mentor requests
             var showPrivateData = (isEventOrganizer(req, event) ||
-                event.isCoorganizer(req.session.user && req.session.user.id))
+                event.isCoorganizer(req.session.user && req.session.user.id));
 
             if (!event.coorganizers.length &&
                 !event.mentors.length) {
