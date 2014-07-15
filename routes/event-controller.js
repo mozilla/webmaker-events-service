@@ -291,23 +291,9 @@ module.exports = function (db, userClient) {
               var flattenedData = [];
 
               publicData.forEach(function (event, index) {
-                if (event.coorganizers.length) {
-                  event.coorganizers = simplifyRecord(event.coorganizers, 'userId');
-                } else {
-                  event.coorganizers = null;
-                }
-
-                if (event.mentors.length) {
-                  event.mentors = simplifyRecord(event.mentors, 'userId');
-                } else {
-                  event.mentors = null;
-                }
-
-                if (event.tags.length) {
-                  event.tags = arrayToCSV(event.tags);
-                } else {
-                  event.tags = null;
-                }
+                event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
+                event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
+                event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
 
                 flattenedData.push(event);
               });
