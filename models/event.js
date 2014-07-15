@@ -1,6 +1,6 @@
 module.exports = function(sequelize, t) {
 
-  var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-44x44.png');
+  var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png');
   var _ = require('lodash');
   var md5 = require('MD5');
   var publicFields = [
@@ -116,14 +116,6 @@ module.exports = function(sequelize, t) {
       }
     },
     organizerId: t.STRING,
-    organizerAvatar: {
-      type: t.STRING,
-      get: function() {
-        return 'https://secure.gravatar.com/avatar/' +
-                md5(this.getDataValue('organizer')) +
-                '?s=100&d=' + defaultGravatar;
-      }
-    },
     featured: {
       type: t.BOOLEAN,
       defaultValue: false,
@@ -151,6 +143,13 @@ module.exports = function(sequelize, t) {
       }
     },
   }, {
+    getterMethods: {
+      organizerAvatar: function() {
+        return 'https://secure.gravatar.com/avatar/' +
+                md5(this.getDataValue('organizer')) +
+                '?d=' + defaultGravatar;
+      },
+    },
     instanceMethods: {
       isCoorganizer: function(userId) {
         return this.coorganizers.some(function(c) {
