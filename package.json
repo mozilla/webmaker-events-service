@@ -27,7 +27,7 @@
     "json2csv": "2.2.1"
   },
   "devDependencies": {
-    "Faker": "~0.7.2",
+    "faker": "~1.0.0",
     "should": "~2.1.1",
     "supertest": "~0.8.3",
     "grunt": "~0.4.5",
