@@ -165,8 +165,7 @@ module.exports = function (db, userClient) {
               gte: new Date(after)
             };
           } else {
-            res.statusCode = 500;
-            res.json({
+            return res.json( 500, {
               error: 'Malformed after date'
             });
           }
