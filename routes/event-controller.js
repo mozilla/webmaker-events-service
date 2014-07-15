@@ -155,6 +155,7 @@ module.exports = function (db, userClient) {
         var searchTerm = req.query.search || false;
 
         var query = {};
+        var eventCount;
         var limit;
         var rangeStart;
         var rangeEnd;
@@ -211,8 +212,15 @@ module.exports = function (db, userClient) {
           limit = rangeEnd - rangeStart + 1;
         }
 
-        db.event
-          .findAndCountAll({
+        // Can't use findAndCountAll(), because the included models will be counted erroneously.
+        // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
+        db.event.count({
+          unique: 'id',
+          where: query
+        })
+        .then(function( count ) {
+          eventCount = count;
+          return db.event.findAll({
             offset: rangeStart || null,
             limit: limit || null,
             // need to wrap order in an array because of a sequelize v1.7.x bug
@@ -227,91 +235,92 @@ module.exports = function (db, userClient) {
                 attributes: ['name']
               }
             ]
-          })
-          .success(function (events) {
-            /**
-             * Create a CSV string from a specific object key's value
-             * @param  {Array} record Array of Objects
-             * @param  {String} key Property to serialize
-             * @return {String} CSV string
-             */
-            function simplifyRecord(record, key) {
-              var csvString = '';
-
-              record.forEach(function (item, index) {
-                if (index < record.length - 1) {
-                  csvString += item[key] + ',';
-                } else {
-                  csvString += item[key];
-                }
-              });
-
-              return csvString;
-            }
-
-            /**
-             * Turn an array into a CSV string
-             * @param  {Array} target
-             * @return {String}
-             */
-            function arrayToCSV(target) {
-              var csvString = '';
-
-              if (Array.isArray(target)) {
-                target.forEach(function (element, index) {
-                  if (index < target.length - 1) {
-                    csvString += element + ',';
-                  } else {
-                    csvString += element;
-                  }
-                });
-              }
-
-              return csvString;
-            }
-
-            // Don't return multiple events with the same title when dedupe is enabled
-            if (dedupe) {
-              events.rows = _.uniq(events.rows, 'title');
-            }
-
-            var publicData = _.invoke(events.rows, 'toFilteredJSON', true);
-
-            if (!req.query.csv) {
-              var contentRange = req.headers.range + '/' + events.count;
-
-              // Headers for pagination
-              res.header('Accept-Ranges', 'items');
-              res.header('Range-Unit', 'items');
-              res.header('Content-Range', contentRange);
-
-              res.json(publicData);
-            } else {
-              var flattenedData = [];
-
-              publicData.forEach(function (event, index) {
-                event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
-                event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
-                event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
-
-                flattenedData.push(event);
-              });
-
-              json2csv({data: flattenedData, fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'attendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']}, function (err, csv) {
-                if (err) {
-                  res.send(500, err);
-                } else {
-                  res.type('text/csv');
-                  res.send(csv);
-                }
-              });
-            }
-
-          })
-          .error(function (err) {
-            res.statusCode = 500;
-            res.json(err);
           });
+        })
+        .then(function (events) {
+          /**
+           * Create a CSV string from a specific object key's value
+           * @param  {Array} record Array of Objects
+           * @param  {String} key Property to serialize
+           * @return {String} CSV string
+           */
+          function simplifyRecord(record, key) {
+            var csvString = '';
+
+            record.forEach(function (item, index) {
+              if (index < record.length - 1) {
+                csvString += item[key] + ',';
+              } else {
+                csvString += item[key];
+              }
+            });
+
+            return csvString;
+          }
+
+          /**
+           * Turn an array into a CSV string
+           * @param  {Array} target
+           * @return {String}
+           */
+          function arrayToCSV(target) {
+            var csvString = '';
+
+            if (Array.isArray(target)) {
+              target.forEach(function (element, index) {
+                if (index < target.length - 1) {
+                  csvString += element + ',';
+                } else {
+                  csvString += element;
+                }
+              });
+            }
+
+            return csvString;
+          }
+
+          // Don't return multiple events with the same title when dedupe is enabled
+          if (dedupe) {
+            events = _.uniq(events, 'title');
+          }
+
+          var publicData = _.invoke(events, 'toFilteredJSON', true);
+
+          if (!req.query.csv) {
+            var contentRange = req.headers.range + '/' + eventCount;
+
+            // Headers for pagination
+            res.header('Accept-Ranges', 'items');
+            res.header('Range-Unit', 'items');
+            res.header('Content-Range', contentRange);
+
+            res.json(publicData);
+          } else {
+            var flattenedData = [];
+
+            publicData.forEach(function (event, index) {
+              event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
+              event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
+              event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
+
+              flattenedData.push(event);
+            });
+
+            json2csv({data: flattenedData, fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'attendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']}, function (err, csv) {
+              if (err) {
+                res.send(500, err);
+              } else {
+                res.type('text/csv');
+                res.send(csv);
+              }
+            });
+          }
+
+        })
+        .error(function (err) {
+          res.statusCode = 500;
+          res.json(err);
+        });
       },
       id: function (req, res) {
         db.event
