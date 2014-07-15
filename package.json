@@ -1,6 +1,6 @@
 {
   "name": "webmaker-events-service",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "dependencies": {
     "MD5": "1.2.0",
     "async": "0.9.0",
