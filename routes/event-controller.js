@@ -183,6 +183,8 @@ module.exports = function (db, userClient) {
               title: {like: '%' + searchTerm +'%'}
             }, {
               description: {like: '%' + searchTerm +'%'}
+            }, {
+              address: {like: '%' + searchTerm + '%'}
             })
           );
         }
