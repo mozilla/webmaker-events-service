@@ -183,9 +183,13 @@ module.exports = function (db, userClient) {
     return csvString;
   }
 
-  return {
+  var controller = {
 
     get: {
+      csv: function (req, res) {
+        req.query.csv = true;
+        controller.get.all(req, res);
+      },
       all: function (req, res) {
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
@@ -614,5 +618,7 @@ module.exports = function (db, userClient) {
         });
     }
   };
+
+  return controller;
 
 };
