@@ -4,11 +4,6 @@ module.exports = function (db, userClient) {
       var confirmed = req.body.confirmation === 'yes';
       var token = req.params.token;
 
-      // Error handling
-      function onError(err) {
-        return next(err);
-      }
-
       // Look up user, then add new mentor, then delete mentor request
       function convertRequestToMentor(mentorRequest) {
         userClient.get.byEmail(mentorRequest.email, function (err, user) {
@@ -27,27 +22,31 @@ module.exports = function (db, userClient) {
                 .success(function () {
                   return res.send(mentor);
                 })
-                .error(onError);
+                .error(next);
             })
-            .error(onError);
+            .error(next);
         });
       }
 
       db.mentorRequest
         .find({ where: { token: token } })
         .success( function (mentorRequest) {
+          if (!mentorRequest) {
+            return res.send(400, 'No matching mentor request found');
+          }
+
           if (confirmed) {
             convertRequestToMentor(mentorRequest);
           } else {
-            db.mentorRequest
-              .update({ denied: true })
+            mentorRequest
+              .updateAttributes({ denied: true })
               .success(function () {
                 return res.send('Mentor denied request');
               })
-              .error(onError);
+              .error(next);
           }
         })
-        .error(onError);
+        .error(next);
 
     },
     verify: function(req, res, next) {
