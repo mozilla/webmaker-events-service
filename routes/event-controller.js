@@ -189,6 +189,42 @@ module.exports = function (db, userClient) {
     return csvString;
   }
 
+  // convert radians to degrees
+  function radToDeg(rad) {
+    return rad * 180 / Math.PI;
+  }
+
+  // convert degrees t radians
+  function degToRad(deg) {
+    return deg * Math.PI / 180;
+  }
+
+  /**
+   * Calculate the maximum and minimum latitudes and logitudes that a
+   * point must fall within from a given coordinate and radius
+   * @param {Number} lat - Latitude
+   * @param {Number} lng - Longitude
+   * @param {Number} radius - radius (Kilometres)
+   */
+  function getBoundingCoordinates( lat, lng, radius ) {
+
+    lat = +lat;
+    lng = +lng;
+
+    // The radius of the Earth in Kilometres
+    var earthsRadius = 6371;
+
+    var latValue = radToDeg(radius / earthsRadius),
+        lngValue = radToDeg(radius / earthsRadius / Math.cos(degToRad(lat)));
+
+    return {
+      maxLat: lat + latValue,
+      maxLng: lng + lngValue,
+      minLat: lat - latValue,
+      minLng: lng - lngValue,
+    };
+  }
+
   var controller = {
 
     get: {
@@ -204,10 +240,14 @@ module.exports = function (db, userClient) {
         var dedupe = req.query.dedupe || false;
         var tagFilter = req.query.tag || null;
         var searchTerm = req.query.search || false;
+        var lat = req.query.lat;
+        var lng = req.query.lng;
+        var radius = req.query.radius;
 
         var query = {};
         var eventCount;
         var limit;
+        var boundingCoordinates;
         var rangeStart;
         var rangeEnd;
         var beginDate;
@@ -223,6 +263,25 @@ module.exports = function (db, userClient) {
               error: 'Malformed after date'
             });
           }
+        }
+
+        if ( lat && lng && radius ) {
+          if ( radius <= 0 ) {
+            radius = 100;
+          // Arbitrary number, can be removed/changed
+          } else if ( radius >= 2000 ) {
+            radius = 2000;
+          }
+
+          boundingCoordinates = getBoundingCoordinates( lat, lng, radius );
+
+          query.latitude = {
+            between: [boundingCoordinates.minLat, boundingCoordinates.maxLat]
+          };
+
+          query.longitude = {
+            between: [boundingCoordinates.minLng, boundingCoordinates.maxLng]
+          };
         }
 
         if (organizerId) {
