@@ -199,7 +199,8 @@ module.exports = function (db, userClient) {
       all: function (req, res) {
         var order = req.query.order || 'beginDate';
         var organizerId = req.query.organizerId;
-        var userId = req.query.userId;
+        var superuserId = req.query.superuserId;
+        var superuserNumericalID;
         var after = req.query.after;
         var dedupe = req.query.dedupe || false;
         var tagFilter = req.query.tag || null;
@@ -212,137 +213,156 @@ module.exports = function (db, userClient) {
         var rangeEnd;
         var beginDate;
 
-        if (after) {
-          beginDate = new Date(after);
-          if (beginDate.toString() !== 'Invalid Date') {
-            query.beginDate = {
-              gte: beginDate
-            };
-          } else {
-            return res.json(500, {
-              error: 'Malformed after date'
+        function runMainQuery() {
+          // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
+          // This is fixed on their master branch, and should ship with Sequelize v2.0.0
+          // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
+          db.sequelize.query(COUNT_SQL_QUERY + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(query))
+            .then(function (data) {
+              eventCount = data[0].COUNT;
+              return db.event.findAll({
+                offset: rangeStart || null,
+                limit: limit || null,
+                // need to wrap order in an array because of a sequelize v1.7.x bug
+                // https://github.com/sequelize/sequelize/issues/1596#issuecomment-39698213
+                order: [order],
+                where: query,
+                include: [
+                  db.coorg,
+                  db.mentor, {
+                    model: db.tag,
+                    attributes: ['name']
+                  }
+                ]
+              });
+            })
+            .then(function (events) {
+
+              // Don't return multiple events with the same title when dedupe is enabled
+              if (dedupe) {
+                events = _.uniq(events, 'title');
+              }
+
+              var publicData = _.invoke(events, 'toFilteredJSON', true);
+
+              if (!req.query.csv) {
+
+                // Headers for pagination
+                if (req.headers.range) {
+                  res.header('Accept-Ranges', 'items');
+                  res.header('Range-Unit', 'items');
+                  res.header('Content-Range', req.headers.range + '/' + eventCount);
+                }
+
+                res.json(publicData);
+              } else {
+                var flattenedData = [];
+
+                publicData.forEach(function (event, index) {
+                  event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
+                  event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
+                  event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
+
+                  flattenedData.push(event);
+                });
+
+                json2csv({
+                  data: flattenedData,
+                  fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'estimatedAttendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']
+                }, function (err, csv) {
+                  if (err) {
+                    res.send(500, err);
+                  } else {
+                    res.type('text/csv');
+                    res.send(csv);
+                  }
+                });
+              }
+
+            })
+            .error(function (err) {
+              res.statusCode = 500;
+              res.json(err);
             });
+        }
+
+        function buildQuery() {
+          if (after) {
+            beginDate = new Date(after);
+            if (beginDate.toString() !== 'Invalid Date') {
+              query.beginDate = {
+                gte: beginDate
+              };
+            } else {
+              return res.json(500, {
+                error: 'Malformed after date'
+              });
+            }
+          }
+
+          if (superuserId) {
+            query = Sequelize.or({
+              organizerId: superuserId
+            }, {
+              'Mentors.userId': superuserNumericalID
+            }, {
+              'Coorganizers.userId': superuserNumericalID
+            });
+          } else if (organizerId) {
+            query.organizerId = organizerId;
+          }
+
+          if (searchTerm) {
+            query = Sequelize.and(
+              query,
+              Sequelize.or({
+                title: {
+                  like: '%' + searchTerm + '%'
+                }
+              }, {
+                description: {
+                  like: '%' + searchTerm + '%'
+                }
+              }, {
+                address: {
+                  like: '%' + searchTerm + '%'
+                }
+              })
+            );
+          }
+
+          if (tagFilter) {
+            query['Tags.name'] = tagFilter;
+          }
+
+          // Parse out numerical ranges from "range" header
+          if (req.headers.range) {
+            rangeStart = parseInt(req.headers.range.split('-')[0], 10);
+            rangeEnd = parseInt(req.headers.range.split('-')[1], 10);
+
+            limit = rangeEnd - rangeStart + 1;
           }
         }
 
-        if (organizerId) {
-          query.organizerId = organizerId;
-        }
-
-        if (searchTerm) {
-          query = Sequelize.and(
-            query,
-            Sequelize.or({
-              title: {
-                like: '%' + searchTerm + '%'
-              }
-            }, {
-              description: {
-                like: '%' + searchTerm + '%'
-              }
-            }, {
-              address: {
-                like: '%' + searchTerm + '%'
-              }
-            })
-          );
-        }
-
-        if (organizerId && userId) {
-          query = Sequelize.and(
-            query,
-            Sequelize.or({
-              organizerId: organizerId
-            }, {
-              'Mentors.userId': userId
-            }, {
-              'Coorganizers.userId': userId
-            })
-          );
-        }
-
-        if (tagFilter) {
-          query['Tags.name'] = tagFilter;
-        }
-
-        // Parse out numerical ranges from "range" header
-        if (req.headers.range) {
-          rangeStart = parseInt(req.headers.range.split('-')[0], 10);
-          rangeEnd = parseInt(req.headers.range.split('-')[1], 10);
-
-          limit = rangeEnd - rangeStart + 1;
-        }
-
-        // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
-        // This is fixed on their master branch, and should ship with Sequelize v2.0.0
-        // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
-        db.sequelize.query(COUNT_SQL_QUERY + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(query))
-          .then(function (data) {
-            eventCount = data[0].COUNT;
-            return db.event.findAll({
-              offset: rangeStart || null,
-              limit: limit || null,
-              // need to wrap order in an array because of a sequelize v1.7.x bug
-              // https://github.com/sequelize/sequelize/issues/1596#issuecomment-39698213
-              order: [order],
-              where: query,
-              include: [
-                db.coorg,
-                db.mentor, {
-                  model: db.tag,
-                  attributes: ['name']
-                }
-              ]
-            });
-          })
-          .then(function (events) {
-
-            // Don't return multiple events with the same title when dedupe is enabled
-            if (dedupe) {
-              events = _.uniq(events, 'title');
+        // Superusers are provided to the api as alphanumeric usernames
+        // To establish co-org and mentor relationships a numerical ID is needed
+        if (superuserId) {
+          userClient.get.byUsername(superuserId, function (err, user) {
+            if (err) {
+              console.error(err);
+              res.send(500);
+              return;
             }
 
-            var publicData = _.invoke(events, 'toFilteredJSON', true);
-
-            if (!req.query.csv) {
-
-              // Headers for pagination
-              if (req.headers.range) {
-                res.header('Accept-Ranges', 'items');
-                res.header('Range-Unit', 'items');
-                res.header('Content-Range', req.headers.range + '/' + eventCount);
-              }
-
-              res.json(publicData);
-            } else {
-              var flattenedData = [];
-
-              publicData.forEach(function (event, index) {
-                event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
-                event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
-                event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
-
-                flattenedData.push(event);
-              });
-
-              json2csv({
-                data: flattenedData,
-                fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'estimatedAttendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']
-              }, function (err, csv) {
-                if (err) {
-                  res.send(500, err);
-                } else {
-                  res.type('text/csv');
-                  res.send(csv);
-                }
-              });
-            }
-
-          })
-          .error(function (err) {
-            res.statusCode = 500;
-            res.json(err);
+            superuserNumericalID = user.user.id;
+            buildQuery();
+            runMainQuery();
           });
+        } else {
+          buildQuery();
+          runMainQuery();
+        }
+
       },
       id: function (req, res) {
         db.event
