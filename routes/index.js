@@ -28,7 +28,7 @@ module.exports = function (env, app, models, userClient) {
   app.get('/events.csv', cors.withAuth, auth.verifyUser, events.get.csv);
 
   // Mentor confirmation
-  app.get('/verify/token/:token', cors.withAuth, confirmation.verify );
+  app.get('/verify/token/:token', cors.withAuth, confirmation.verify);
   app.post('/confirm/mentor/:token', cors.withAuth, auth.verifyUser, confirmation.update);
 
   // RSVP

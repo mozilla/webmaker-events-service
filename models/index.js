@@ -2,7 +2,7 @@ var Sequelize = require('sequelize');
 var WebmakerUserClient = require('webmaker-user-client');
 var hatchet = require('hatchet');
 
-module.exports = function(options, login_url_with_auth, events_url) {
+module.exports = function (options, login_url_with_auth, events_url) {
 
   options = options || {};
 
@@ -15,18 +15,18 @@ module.exports = function(options, login_url_with_auth, events_url) {
   if (options.dialect === 'mysql' && options.database) {
     sequelize = new Sequelize(options.database, options.user, options.password, {
       logging: console.log,
-      host: options.host  || 'localhost',
+      host: options.host || 'localhost',
       port: options.port || 3306,
       dialectOptions: {
         'SSL_VERIFY_SERVER_CERT': options.cert
       }
     });
 
-  // MySQL with connection string
+    // MySQL with connection string
   } else if (options.connectionstring) {
     sequelize = new Sequelize(options.connectionstring);
 
-  // Sqlite (Default)
+    // Sqlite (Default)
   } else {
     sequelize = new Sequelize(options.database, options.user, options.password, {
       dialect: 'sqlite',
@@ -44,8 +44,12 @@ module.exports = function(options, login_url_with_auth, events_url) {
   var Attendee = sequelize.import(__dirname + '/attendee.js');
 
   // One-to-Many
-  Event.hasMany(Attendee, {foreignKey: 'eventID'});
-  Attendee.belongsTo(Event, {foreignKey: 'eventID'});
+  Event.hasMany(Attendee, {
+    foreignKey: 'eventID'
+  });
+  Attendee.belongsTo(Event, {
+    foreignKey: 'eventID'
+  });
 
   Event.hasMany(Coorg);
   Coorg.belongsTo(Event);
@@ -72,7 +76,7 @@ module.exports = function(options, login_url_with_auth, events_url) {
     }
   });
 
-  Coorg.hook('beforeBulkCreate', function(records, fields, callback) {
+  Coorg.hook('beforeBulkCreate', function (records, fields, callback) {
 
     var usernames = records.map(function (coorg) {
       return coorg._username;
@@ -82,91 +86,95 @@ module.exports = function(options, login_url_with_auth, events_url) {
       return coorg.EventId;
     });
 
-    Event.findAll({ id: event_ids })
-    .then(function(events) {
-      var eventsById = {};
-      events.forEach(function(event) {
-        eventsById[event.id] = event;
-      });
-
-      userClient.get.byUsernames(usernames, function(err, users) {
-        if (err) {
-          return callback(err);
-        }
-        var usersByUsername = {};
-        users.users.forEach(function(user) {
-          usersByUsername[user.username] = user;
-        });
-        records = records.filter(function(coorg) {
-          return !!usersByUsername[coorg._username];
-        }).map(function(coorg) {
-          coorg.userId = usersByUsername[coorg._username].id;
-          return coorg;
+    Event.findAll({
+      id: event_ids
+    })
+      .then(function (events) {
+        var eventsById = {};
+        events.forEach(function (event) {
+          eventsById[event.id] = event;
         });
 
-        records.forEach(function (coorg) {
-          var user = usersByUsername[coorg._username];
-          var data = {
-            sendEmail: user ? user.sendMentorRequestEmails : true,
-            username: user.username,
-            email: user.email,
-            eventName: eventsById[coorg.EventId].title,
-            eventUrl: events_url + '/#!/events/' + coorg.EventId,
-            eventEditUrl: events_url + '/#!/edit/' + coorg.EventId,
-            locale: user.prefLocale,
-          };
-          hatchet.send('event_coorganizer_added', data);
+        userClient.get.byUsernames(usernames, function (err, users) {
+          if (err) {
+            return callback(err);
+          }
+          var usersByUsername = {};
+          users.users.forEach(function (user) {
+            usersByUsername[user.username] = user;
+          });
+          records = records.filter(function (coorg) {
+            return !!usersByUsername[coorg._username];
+          }).map(function (coorg) {
+            coorg.userId = usersByUsername[coorg._username].id;
+            return coorg;
+          });
+
+          records.forEach(function (coorg) {
+            var user = usersByUsername[coorg._username];
+            var data = {
+              sendEmail: user ? user.sendMentorRequestEmails : true,
+              username: user.username,
+              email: user.email,
+              eventName: eventsById[coorg.EventId].title,
+              eventUrl: events_url + '/#!/events/' + coorg.EventId,
+              eventEditUrl: events_url + '/#!/edit/' + coorg.EventId,
+              locale: user.prefLocale,
+            };
+            hatchet.send('event_coorganizer_added', data);
+          });
+          callback(null, records, fields);
         });
-        callback(null, records, fields);
       });
-    });
   });
 
-  MentorRequest.hook('afterBulkCreate', function(records, fields, callback) {
-    var emails = records.map(function(request) {
+  MentorRequest.hook('afterBulkCreate', function (records, fields, callback) {
+    var emails = records.map(function (request) {
       return request.email;
     });
 
-    var event_ids = records.map(function(request) {
+    var event_ids = records.map(function (request) {
       return request.EventId;
     });
 
-    Event.findAll({ id: event_ids })
-    .then(function(events) {
-      var eventsById = {};
-      events.forEach(function(event) {
-        eventsById[event.id] = event;
-      });
-
-      userClient.get.byEmails(emails, function(err, users) {
-        if (err) {
-          return callback(err);
-        }
-
-        var usersByEmail = {};
-        users.users.forEach(function(user) {
-          usersByEmail[user.email] = user;
+    Event.findAll({
+      id: event_ids
+    })
+      .then(function (events) {
+        var eventsById = {};
+        events.forEach(function (event) {
+          eventsById[event.id] = event;
         });
 
-        records.forEach(function(request) {
-          var user = usersByEmail[request.email];
+        userClient.get.byEmails(emails, function (err, users) {
+          if (err) {
+            return callback(err);
+          }
 
-          hatchet.send('event_mentor_confirmation_email', {
-            sendEmail: user ? user.sendMentorRequestEmails : true,
-            username: user && user.username,
-            email: request.email,
-            eventName: eventsById[request.EventId].title,
-            eventUrl: events_url + '/#!/events/' + request.EventId,
-            organizerUsername: eventsById[request.EventId].organizerId,
-            locale: user && user.prefLocale,
-            confirmUrlYes: events_url + '/#!/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
-            confirmUrlNo: events_url + '/#!/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
+          var usersByEmail = {};
+          users.users.forEach(function (user) {
+            usersByEmail[user.email] = user;
           });
-        });
 
-        callback(null, records, fields);
+          records.forEach(function (request) {
+            var user = usersByEmail[request.email];
+
+            hatchet.send('event_mentor_confirmation_email', {
+              sendEmail: user ? user.sendMentorRequestEmails : true,
+              username: user && user.username,
+              email: request.email,
+              eventName: eventsById[request.EventId].title,
+              eventUrl: events_url + '/#!/events/' + request.EventId,
+              organizerUsername: eventsById[request.EventId].organizerId,
+              locale: user && user.prefLocale,
+              confirmUrlYes: events_url + '/#!/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
+              confirmUrlNo: events_url + '/#!/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
+            });
+          });
+
+          callback(null, records, fields);
+        });
       });
-    });
   });
 
   // Export models

@@ -5,7 +5,6 @@ if (process.env.NEW_RELIC_ENABLED) {
 var Habitat = require('habitat');
 Habitat.load();
 
-
 // Configuration
 var env = new Habitat();
 
