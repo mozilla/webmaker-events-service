@@ -110,11 +110,13 @@ function verifyUser(data, callback) {
 
 function geocode(data, callback) {
   async.eachSeries(data.parsed, function(event, done) {
-    geocoder.geocode(event.location)
+    event.address = event.location;
+    delete event.location;
+
+    geocoder.geocode(event.address)
     .then(function(resp) {
       if ( !resp.length ) {
-        console.error(new Error('geocoder found no data for location: ' + event.location));
-        process.exit(1);
+        return done();
       }
       var geoData = resp[0];
       event.latitude = geoData.latitude;
@@ -122,13 +124,10 @@ function geocode(data, callback) {
       event.country = geoData.country;
       event.city = geoData.city;
 
-      event.address = event.location;
-      delete event.location;
       done();
     })
     .catch(function(err) {
-      console.error(err);
-      process.exit(1);
+      done();
     });
   }, function(err) {
     callback(err, data);
@@ -148,6 +147,10 @@ function mapFields(data, callback) {
     eventData.endDate = new Date((new Date(eventData.beginDate)).setHours(eventData.beginDate.getHours() + eventData.length ));
     eventData.ageGroup = eventData.ageGroup === 'any' ? '' : eventData.ageGroup;
     eventData.skillLevel = eventData.skillLevel === 'any' ? '' : eventData.skillLevel;
+
+    if ( !eventData.registerLink ) {
+      eventData.registerLink = null;
+    }
 
     return eventData;
   });
