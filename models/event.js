@@ -27,7 +27,9 @@ module.exports = function(sequelize, t) {
     'updatedAt',
     'coorganizers',
     'mentors',
-    'tags'
+    'tags',
+    'flickrTag',
+    'makeApiTag'
   ];
 
   return sequelize.define('Event', {
@@ -142,6 +144,14 @@ module.exports = function(sequelize, t) {
         return this.getDataValue('url') || '#!/events/' + this.getDataValue('id');
       }
     },
+    flickrTag: {
+      type: t.STRING,
+      defaultValue: null
+    },
+    makeApiTag: {
+      type: t.STRING,
+      defaultValue: null
+    }
   }, {
     getterMethods: {
       organizerAvatar: function() {

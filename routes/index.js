@@ -4,6 +4,7 @@ module.exports = function (env, app, models, userClient) {
   var dev = require('./dev-controller')(models);
   var attendee = require('./attendee-controller.js')(models, userClient);
   var tags = require('./tag-controller.js')(models);
+  var flickr = require('./flickr')(env, models);
   var confirmation = require('./confirmation.js')(models, userClient);
   var auth = require('./auth')(env);
   var cors = require('./cors')(env);
@@ -16,6 +17,7 @@ module.exports = function (env, app, models, userClient) {
 
   app.get('/events', cors.withAuth, events.get.all);
   app.get('/events/:id', cors.withAuth, events.get.id);
+  app.get('/events/:id/flickr', cors.withAuth, flickr);
 
   // Protected routes
   app.post('/events', cors.withAuth, auth.verifyUser, events.post);
