@@ -118,6 +118,7 @@ module.exports = function (db, userClient) {
       var email = req.query.email;
       var didAttend = req.query.checkin ? parseBool(req.query.checkin) : undefined;
       var didRSVP = req.query.rsvp ? parseBool(req.query.rsvp) : undefined;
+      var isPrivate = req.query.isPrivate ? parseBool(req.query.isPrivate) : undefined;
 
       var eventData;
 
@@ -193,6 +194,10 @@ module.exports = function (db, userClient) {
 
                 if (typeof didRSVP === 'boolean') {
                   record.didRSVP = didRSVP;
+                }
+
+                if (typeof isPrivate === 'boolean') {
+                  record.isPrivate = isPrivate;
                 }
 
                 if (!result) {

@@ -17,6 +17,11 @@ module.exports = function (sequelize, t) {
       allowNull: false,
       defaultValue: false
     },
+    isPrivate: {
+      type: t.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     didAttend: {
       type: t.BOOLEAN,
       allowNull: true // Prevent false negatives caused by user being checked in
