@@ -19,7 +19,7 @@ module.exports = function (env, db) {
         var flickrTagFormatted = event.flickrTag.split(',').join('+');
         flickr.photos.search({
           per_page: req.query.limit || 20,
-          page: req.query.page|| 1,
+          page: req.query.page || 1,
           tags: flickrTagFormatted
         }, function (err, data) {
           if (err) {

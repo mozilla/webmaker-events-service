@@ -10,11 +10,13 @@ var remoUrl = 'https://reps.mozilla.org/api/v1/event/?offset=0&limit=0&categorie
 var source = 'mozreps';
 
 request(remoUrl, function (err, response, body) {
+  var events;
+
   if (err) {
     return console.error(err.stack);
   }
   try {
-    var events = JSON.parse(body).objects;
+    events = JSON.parse(body).objects;
   } catch (e) {
     return console.error('Error: could not parse remo events api response', body);
   }
@@ -31,20 +33,26 @@ request(remoUrl, function (err, response, body) {
     newEvent.beginDate = event.start;
     newEvent.endDate = event.end;
     newEvent.registerLink = event.exernal_link;
-    newEvent.organizer = 'info@webmaker.org',
-    newEvent.organizerId = 'mozreps',
+    newEvent.organizer = 'info@webmaker.org';
+    newEvent.organizerId = 'mozreps';
     newEvent.externalSource = source;
     newEvent.url = event.event_url;
     return newEvent;
   });
-  db.sequelize.transaction(function(t) {
+  db.sequelize.transaction(function (t) {
     db.event
-      .destroy({externalSource: source}, {transaction: t})
-      .success(function() {
+      .destroy({
+        externalSource: source
+      }, {
+        transaction: t
+      })
+      .success(function () {
         db.event
-          .bulkCreate(events, {transaction: t})
-          .success(function() {
-            t.commit().success(function() {
+          .bulkCreate(events, {
+            transaction: t
+          })
+          .success(function () {
+            t.commit().success(function () {
               console.log('Events created successfully');
               process.exit(0);
             });
@@ -52,4 +60,3 @@ request(remoUrl, function (err, response, body) {
       });
   });
 });
-

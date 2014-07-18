@@ -1,4 +1,4 @@
-module.exports = function(db) {
+module.exports = function (db) {
   return {
     get: function (req, res) {
       if (!req.query.like) {
@@ -17,7 +17,7 @@ module.exports = function(db) {
           order: 'nameCount',
           limit: 20
         })
-        .then(function success (tags) {
+        .then(function success(tags) {
           var tagNames = [];
 
           tags.forEach(function (tag) {
@@ -25,7 +25,7 @@ module.exports = function(db) {
           });
 
           res.json(tagNames);
-        }, function fail () {
+        }, function fail() {
           res.send(500);
         });
     }

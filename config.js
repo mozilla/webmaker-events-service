@@ -1,4 +1,4 @@
-module.exports = function(env, db) {
+module.exports = function (env, db) {
   var express = require('express');
   var messina = require('messina')('webmaker-events-service-' + env.get('NODE_ENV'));
   var WebmakerAuth = require('webmaker-auth');
@@ -20,7 +20,7 @@ module.exports = function(env, db) {
     forceSSL: env.get('FORCE_SSL'),
     domain: env.get('COOKIE_DOMAIN')
   });
-  var userClient = new (require('webmaker-user-client'))({
+  var userClient = new(require('webmaker-user-client'))({
     endpoint: env.get('LOGIN_URL_WITH_AUTH')
   });
 
@@ -38,8 +38,8 @@ module.exports = function(env, db) {
   app.use(auth.cookieSession());
 
   // Dev flag sets admin to true
-  app.use(function(req, res, next) {
-    if(env.get('dev')) {
+  app.use(function (req, res, next) {
+    if (env.get('dev')) {
       req.admin = true;
     }
     next();

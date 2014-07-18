@@ -1,8 +1,8 @@
-module.exports = function(db, userClient) {
+module.exports = function (db, userClient) {
   return {
     get: {
       // /attendee/event/:id
-      event: function(req, res) {
+      event: function (req, res) {
         var eventID = parseInt(req.params.id, 10);
         var eventData;
         var coorganizers = [];
@@ -14,78 +14,78 @@ module.exports = function(db, userClient) {
           where: {
             id: eventID
           },
-          include: [ db.coorg, db.attendee ]
+          include: [db.coorg, db.attendee]
         })
-        .then(function success (event) {
-          if (!event) {
-            res.send(404);
-          } else {
-            eventData = event.dataValues;
-          }
+          .then(function success(event) {
+            if (!event) {
+              res.send(404);
+            } else {
+              eventData = event.dataValues;
+            }
 
-          eventData.coorganizers.forEach(function (coorg, index) {
-            coorganizers.push(coorg.dataValues.userId);
-          });
-
-          var isAuthorizedConsumer = (user && (user.isAdmin || user.username === eventData.organizerId || coorganizers.indexOf(user.id) > -1));
-
-          if (eventData.areAttendeesPublic || isAuthorizedConsumer) {
-
-            var userIDs = [];
-            var userHash = {};
-            var unregisteredUsers = [];
-
-            eventData.attendees.forEach(function (attendee) {
-              if (attendee.userID) {
-                userIDs.push(attendee.userID);
-                userHash[attendee.userID] = attendee.dataValues;
-              } else {
-                unregisteredUsers.push(attendee);
-              }
+            eventData.coorganizers.forEach(function (coorg, index) {
+              coorganizers.push(coorg.dataValues.userId);
             });
 
-            // Get usernames and avatars from user IDs
+            var isAuthorizedConsumer = (user && (user.isAdmin || user.username === eventData.organizerId || coorganizers.indexOf(user.id) > -1));
 
-            userClient.get.byIds(userIDs, function (err, users) {
-              if (err) {
-                res.send(500, 'Login service is down.');
-              } else {
-                users.users.forEach(function (user) {
-                  userHash[user.id].username = user.username;
-                  userHash[user.id].avatar = user.avatar;
-                });
+            if (eventData.areAttendeesPublic || isAuthorizedConsumer) {
 
-                var userArray = [];
+              var userIDs = [];
+              var userHash = {};
+              var unregisteredUsers = [];
 
-                for (var key in userHash) {
-                  userArray.push(userHash[key]);
+              eventData.attendees.forEach(function (attendee) {
+                if (attendee.userID) {
+                  userIDs.push(attendee.userID);
+                  userHash[attendee.userID] = attendee.dataValues;
+                } else {
+                  unregisteredUsers.push(attendee);
                 }
+              });
 
-                userArray = userArray.concat(unregisteredUsers);
+              // Get usernames and avatars from user IDs
 
-                // Remove emails from public attendee lists
-                if (!isAuthorizedConsumer) {
-                  userArray.forEach(function (user) {
-                    if (user.dataValues) {
-                      delete user.dataValues.email;
-                    } else {
-                      delete user.email;
-                    }
+              userClient.get.byIds(userIDs, function (err, users) {
+                if (err) {
+                  res.send(500, 'Login service is down.');
+                } else {
+                  users.users.forEach(function (user) {
+                    userHash[user.id].username = user.username;
+                    userHash[user.id].avatar = user.avatar;
                   });
-                }
 
-                res.json(userArray);
-              }
-            });
-          } else {
-            res.send(401);
-          }
-        }, function fail() {
-          res.send(500);
-        });
+                  var userArray = [];
+
+                  for (var key in userHash) {
+                    userArray.push(userHash[key]);
+                  }
+
+                  userArray = userArray.concat(unregisteredUsers);
+
+                  // Remove emails from public attendee lists
+                  if (!isAuthorizedConsumer) {
+                    userArray.forEach(function (user) {
+                      if (user.dataValues) {
+                        delete user.dataValues.email;
+                      } else {
+                        delete user.email;
+                      }
+                    });
+                  }
+
+                  res.json(userArray);
+                }
+              });
+            } else {
+              res.send(401);
+            }
+          }, function fail() {
+            res.send(500);
+          });
       },
       // /attendee/user/:id
-      user: function(req, res) {
+      user: function (req, res) {
         var userID = parseInt(req.params.id, 10);
 
         if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID)) {
@@ -107,7 +107,7 @@ module.exports = function(db, userClient) {
       }
     },
     // /attendee/?userid=USERNAME&eventid=EVENTID&checkin=true&rsvp=false
-    post: function(req, res) {
+    post: function (req, res) {
       // Like parseInt, but...for boolean-like strings
       function parseBool(boolean) {
         return boolean === 'true' || boolean === '1';
@@ -121,7 +121,7 @@ module.exports = function(db, userClient) {
 
       var eventData;
 
-      if ( !((userID || email) && eventID) ) {
+      if (!((userID || email) && eventID)) {
         res.send(500, 'eventid must be specified and accompanied by a userid or email.');
       }
 
@@ -130,27 +130,53 @@ module.exports = function(db, userClient) {
           id: eventID
         }
       })
-      .then(function success (event) {
-        if (!event) {
-          res.send(404);
-        }
+        .then(function success(event) {
+          if (!event) {
+            res.send(404);
+          }
 
-        eventData = event.dataValues;
+          eventData = event.dataValues;
 
-        if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID || req.session.user.username === eventData.organizerId)) {
-          // Make sure the event exists first
-          db.event
-            .find({
-              where: {
-                id: eventID
-              }
-            })
-            .then(function success(event) {
-              eventData = event;
+          if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID || req.session.user.username === eventData.organizerId)) {
+            // Make sure the event exists first
+            db.event
+              .find({
+                where: {
+                  id: eventID
+                }
+              })
+              .then(function success(event) {
+                eventData = event;
 
-              if (!event) {
-                res.send(404, 'Event not found');
-              } else {
+                if (!event) {
+                  res.send(404, 'Event not found');
+                } else {
+                  var record = {
+                    eventID: eventID
+                  };
+
+                  if (userID) {
+                    record.userID = userID;
+                  } else if (email) {
+                    record.email = email;
+                  }
+
+                  return db.attendee
+                    .find({
+                      where: record
+                    });
+                }
+              }, function fail() {
+                res.send(500);
+              })
+              .then(function success(result) {
+                // Break out if the event doesn't exist
+                if (!eventData) {
+                  return;
+                }
+
+                // Make sure RSVP doesn't exist already and store if not.
+
                 var record = {
                   eventID: eventID
                 };
@@ -161,62 +187,36 @@ module.exports = function(db, userClient) {
                   record.email = email;
                 }
 
-                return db.attendee
-                  .find({
-                    where: record
-                  });
-              }
-            }, function fail() {
-              res.send(500);
-            })
-            .then(function success(result) {
-              // Break out if the event doesn't exist
-              if (!eventData) {
-                return;
-              }
+                if (typeof didAttend === 'boolean') {
+                  record.didAttend = didAttend;
+                }
 
-              // Make sure RSVP doesn't exist already and store if not.
+                if (typeof didRSVP === 'boolean') {
+                  record.didRSVP = didRSVP;
+                }
 
-              var record = {
-                eventID: eventID
-              };
+                if (!result) {
+                  db.attendee
+                    .create(record)
+                    .then(function () {
+                      res.send('Record created.');
+                    });
+                } else {
+                  result.updateAttributes(record);
 
-              if (userID) {
-                record.userID = userID;
-              } else if (email) {
-                record.email = email;
-              }
+                  res.send('Record already exists. Updating.');
+                }
 
-              if (typeof didAttend === 'boolean') {
-                record.didAttend = didAttend;
-              }
+              }, function failure(err) {
+                res.send(500, 'Error.');
+              });
 
-              if (typeof didRSVP === 'boolean') {
-                record.didRSVP = didRSVP;
-              }
-
-              if (!result) {
-                db.attendee
-                  .create(record)
-                  .then(function() {
-                    res.send('Record created.');
-                  });
-              } else {
-                result.updateAttributes(record);
-
-                res.send('Record already exists. Updating.');
-              }
-
-            }, function failure(err) {
-              res.send(500, 'Error.');
-            });
-
-        } else {
-          res.send(401);
-        }
-      }, function fail () {
-        res.send(500);
-      });
+          } else {
+            res.send(401);
+          }
+        }, function fail() {
+          res.send(500);
+        });
 
     }
   };

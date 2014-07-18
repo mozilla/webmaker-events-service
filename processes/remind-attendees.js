@@ -18,38 +18,10 @@ var userClient = new WebmakerUserClient({
   endpoint: env.get('LOGIN_URL_WITH_AUTH')
 });
 
-db.attendee.findAll({
-  include: {
-    model: db.event,
-    where: {
-      beginDate: {
-        lte: tomorrow
-      }
-    }
-  },
-  where: {
-    didRSVP: true,
-    sentEventReminder: false,
-    userId: {
-      ne: null
-    }
-  }
-}).then(function(attendees) {
-  q.push(attendees, function(error) {
-    if (error) {
-      console.error(error.from);
-      console.error(error.stack);
-      process.exit(1);
-    }
-
-    console.log("done");
-  });
-});
-
-var q = async.queue(function(attendee, callback) {
-  userClient.get.byId(attendee.userID, function(login_error, user) {
+var q = async.queue(function (attendee, callback) {
+  userClient.get.byId(attendee.userID, function (login_error, user) {
     if (login_error) {
-      login_error.from = "Error from user client";
+      login_error.from = 'Error from user client';
       return callback(login_error);
     }
 
@@ -71,7 +43,7 @@ var q = async.queue(function(attendee, callback) {
       .lang(user.user.prefLocale)
       .format('lll zz');
 
-    hatchet.send("remind_user_about_event", {
+    hatchet.send('remind_user_about_event', {
       email: user.user.email,
       locale: user.user.prefLocale,
       userId: user.user.id,
@@ -83,9 +55,9 @@ var q = async.queue(function(attendee, callback) {
       eventURL: attendee.event.url,
       organizerEmail: attendee.event.isEmailPublic ? attendee.event.organizer : null,
       organizerUsername: attendee.event.organizerId
-    }, function(hatchet_error) {
+    }, function (hatchet_error) {
       if (hatchet_error) {
-        hatchet_error.from = "Error from hatchet";
+        hatchet_error.from = 'Error from hatchet';
         return callback(hatchet_error);
       }
 
@@ -95,3 +67,31 @@ var q = async.queue(function(attendee, callback) {
     });
   });
 }, 1);
+
+db.attendee.findAll({
+  include: {
+    model: db.event,
+    where: {
+      beginDate: {
+        lte: tomorrow
+      }
+    }
+  },
+  where: {
+    didRSVP: true,
+    sentEventReminder: false,
+    userId: {
+      ne: null
+    }
+  }
+}).then(function (attendees) {
+  q.push(attendees, function (error) {
+    if (error) {
+      console.error(error.from);
+      console.error(error.stack);
+      process.exit(1);
+    }
+
+    console.log('done');
+  });
+});

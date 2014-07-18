@@ -1,4 +1,4 @@
-module.exports = function(sequelize, t) {
+module.exports = function (sequelize, t) {
 
   return sequelize.define('Mentor', {
     bio: {
@@ -10,10 +10,10 @@ module.exports = function(sequelize, t) {
     }
   }, {
     getterMethods: {
-      avatar: function() {
+      avatar: function () {
         return this._avatar;
       },
-      username: function() {
+      username: function () {
         return this._username;
       }
     }

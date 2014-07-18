@@ -1,4 +1,4 @@
-module.exports = function(sequelize, t) {
+module.exports = function (sequelize, t) {
 
   return sequelize.define('Coorganizer', {
     userId: {
@@ -7,15 +7,15 @@ module.exports = function(sequelize, t) {
     }
   }, {
     getterMethods: {
-      avatar: function() {
+      avatar: function () {
         return this._avatar;
       },
-      username: function() {
+      username: function () {
         return this._username;
       }
     },
     setterMethods: {
-      username: function(data) {
+      username: function (data) {
         this._username = data;
       }
     }

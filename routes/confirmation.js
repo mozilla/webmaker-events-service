@@ -29,8 +29,12 @@ module.exports = function (db, userClient) {
       }
 
       db.mentorRequest
-        .find({ where: { token: token } })
-        .success( function (mentorRequest) {
+        .find({
+          where: {
+            token: token
+          }
+        })
+        .success(function (mentorRequest) {
           if (!mentorRequest) {
             return res.send(400, 'No matching mentor request found');
           }
@@ -39,7 +43,9 @@ module.exports = function (db, userClient) {
             convertRequestToMentor(mentorRequest);
           } else {
             mentorRequest
-              .updateAttributes({ denied: true })
+              .updateAttributes({
+                denied: true
+              })
               .success(function () {
                 return res.send('Mentor denied request');
               })
@@ -49,12 +55,14 @@ module.exports = function (db, userClient) {
         .error(next);
 
     },
-    verify: function(req, res, next) {
+    verify: function (req, res, next) {
       var token = req.params.token;
       var eventId = req.query.eventId;
 
-      if ( !eventId ) {
-        return res.json(400, {'error': 'eventId param is required'});
+      if (!eventId) {
+        return res.json(400, {
+          'error': 'eventId param is required'
+        });
       }
 
       db.mentorRequest
@@ -64,10 +72,12 @@ module.exports = function (db, userClient) {
             eventId: eventId
           }
         })
-        .success( function(mentorRequest) {
-          return res.json({ valid: !!mentorRequest });
+        .success(function (mentorRequest) {
+          return res.json({
+            valid: !!mentorRequest
+          });
         })
-        .error( function(err) {
+        .error(function (err) {
           next(err);
         });
     }

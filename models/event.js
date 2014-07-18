@@ -1,4 +1,4 @@
-module.exports = function(sequelize, t) {
+module.exports = function (sequelize, t) {
 
   var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png');
   var _ = require('lodash');
@@ -66,13 +66,17 @@ module.exports = function(sequelize, t) {
     ageGroup: {
       type: t.STRING,
       validate: {
-        isIn: [['', 'kids', 'youth', 'adults']]
+        isIn: [
+          ['', 'kids', 'youth', 'adults']
+        ]
       }
     },
     skillLevel: {
       type: t.STRING,
       validate: {
-        isIn: [['', 'beginner', 'intermediate', 'advanced']]
+        isIn: [
+          ['', 'beginner', 'intermediate', 'advanced']
+        ]
       }
     },
     beginDate: {
@@ -140,7 +144,7 @@ module.exports = function(sequelize, t) {
     url: {
       type: t.STRING,
       defaultValue: null,
-      get: function() {
+      get: function () {
         return this.getDataValue('url') || '#!/events/' + this.getDataValue('id');
       }
     },
@@ -154,19 +158,19 @@ module.exports = function(sequelize, t) {
     }
   }, {
     getterMethods: {
-      organizerAvatar: function() {
+      organizerAvatar: function () {
         return 'https://secure.gravatar.com/avatar/' +
-                md5(this.getDataValue('organizer')) +
-                '?d=' + defaultGravatar;
+          md5(this.getDataValue('organizer')) +
+          '?d=' + defaultGravatar;
       },
     },
     instanceMethods: {
-      isCoorganizer: function(userId) {
-        return this.coorganizers.some(function(c) {
+      isCoorganizer: function (userId) {
+        return this.coorganizers.some(function (c) {
           return c.userId === userId;
         });
       },
-      toFilteredJSON: function(showPrivate) {
+      toFilteredJSON: function (showPrivate) {
         // This is gross but necessary:
         // http://stackoverflow.com/questions/24431213/get-only-values-from-rows-and-associations-with-sequelize#comment37831440_24431213
         var event = JSON.parse(JSON.stringify(this));

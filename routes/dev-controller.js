@@ -1,10 +1,10 @@
-module.exports = function(db) {
+module.exports = function (db) {
 
   var Faker = require('../util/faker');
   var faker = new Faker();
 
   return {
-    healthcheck: function(env) {
+    healthcheck: function (env) {
 
       var info = {
         http: 'okay',
@@ -19,7 +19,7 @@ module.exports = function(db) {
     },
 
     // Use with caution
-    fake: function(req, res, next) {
+    fake: function (req, res, next) {
 
       if (req.query.amount) {
 
@@ -27,10 +27,10 @@ module.exports = function(db) {
 
         db.event
           .bulkCreate(fakeEvents)
-          .success(function(data) {
+          .success(function (data) {
             res.json(data);
           })
-          .error(function(err) {
+          .error(function (err) {
             res.statusCode = 500;
             res.json(err);
           });
@@ -41,10 +41,10 @@ module.exports = function(db) {
 
         db.event
           .create(fakeEvent)
-          .success(function(data) {
+          .success(function (data) {
             res.json(data);
           })
-          .error(function(err) {
+          .error(function (err) {
             res.statusCode = 500;
             res.json(err);
           });
