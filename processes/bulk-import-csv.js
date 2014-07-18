@@ -114,27 +114,27 @@ function verifyUser(data, callback) {
 }
 
 function geocode(data, callback) {
-  async.eachSeries(data.parsed, function(event, done) {
+  async.eachSeries(data.parsed, function (event, done) {
     event.address = event.location;
     delete event.location;
 
     geocoder.geocode(event.address)
-    .then(function(resp) {
-      if ( !resp.length ) {
-        return done();
-      }
-      var geoData = resp[0];
-      event.latitude = geoData.latitude;
-      event.longitude = geoData.longitude;
-      event.country = geoData.country;
-      event.city = geoData.city;
+      .then(function (resp) {
+        if (!resp.length) {
+          return done();
+        }
+        var geoData = resp[0];
+        event.latitude = geoData.latitude;
+        event.longitude = geoData.longitude;
+        event.country = geoData.country;
+        event.city = geoData.city;
 
-      done();
-    })
-    .catch(function(err) {
-      done();
-    });
-  }, function(err) {
+        done();
+      })
+      .catch(function (err) {
+        done();
+      });
+  }, function (err) {
     callback(err, data);
   });
 }
@@ -153,7 +153,7 @@ function mapFields(data, callback) {
     eventData.ageGroup = eventData.ageGroup === 'any' ? '' : eventData.ageGroup;
     eventData.skillLevel = eventData.skillLevel === 'any' ? '' : eventData.skillLevel;
 
-    if ( !eventData.registerLink ) {
+    if (!eventData.registerLink) {
       eventData.registerLink = null;
     }
 
@@ -281,8 +281,8 @@ async.waterfall([
     process.exit(1);
   }
   var url = env.get('EVENTS_FRONTEND_URL') + '/#!/events/';
-  data.created.forEach(function(created) {
-    console.log( url + created.event.id )
+  data.created.forEach(function (created) {
+    console.log(url + created.event.id);
   });
   process.exit(0);
 });
