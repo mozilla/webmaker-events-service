@@ -2,7 +2,7 @@ module.exports = function () {
   var self = this;
 
   // Export Faker
-  var faker = self.faker = require('Faker');
+  var faker = self.faker = require('faker');
 
   // Generate a single event
   self.event = function () {
