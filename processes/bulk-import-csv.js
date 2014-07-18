@@ -274,7 +274,7 @@ async.waterfall([
     console.error( err );
     process.exit(1);
   }
-  var url = env.get("EVENTS_FRONTEND_URL") + "/!#/events/";
+  var url = env.get("EVENTS_FRONTEND_URL") + "/#!/events/";
   data.created.forEach(function(created) {
     console.log( url + created.event.id )
   });
