@@ -122,7 +122,7 @@ The default location is `events.sqlite` in the root folder, but it can be config
   "longitude": 101,
   "city": "Toronto",
   "country": "Canada",
-  "attendees": 474,
+  "estimatedAttendees": 474,
   "beginDate": "2014-01-15T22:16:43.000Z",
   "endDate": null,
   "beginTime": null,

@@ -13,7 +13,7 @@ module.exports = function (sequelize, t) {
     'longitude',
     'city',
     'country',
-    'attendees',
+    'estimatedAttendees',
     'ageGroup',
     'skillLevel',
     'beginDate',
@@ -62,7 +62,7 @@ module.exports = function (sequelize, t) {
     },
     city: t.STRING,
     country: t.STRING,
-    attendees: t.INTEGER,
+    estimatedAttendees: t.INTEGER,
     ageGroup: {
       type: t.STRING,
       validate: {

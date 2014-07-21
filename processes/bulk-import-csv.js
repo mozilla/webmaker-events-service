@@ -8,7 +8,7 @@
  **
  ** the data should have the column names on the first line, and each row of data on subsequent lines. i.e.
  **
- ** title,description,location,attendees,beginDate,beginTime,length,registerLink,organizerUsername,areAttendeesPublic,skillLevel,ageGroup,tags
+ ** title,description,location,estimatedAttendees,beginDate,beginTime,length,registerLink,organizerUsername,areAttendeesPublic,skillLevel,ageGroup,tags
  ** Awsm Event,an awsm event for you,Toronto,150,8/25/2014,18:30,unknown,mozilla.org/awsm,cade,TRUE,advanced,adults,"javascript, teaching"
  **
  ** If any row in the provided data is invalid for any reason, NONE of the events will be committed into the Events database.
@@ -70,7 +70,7 @@ function parseCSV(data, callback) {
 
 function checkValues(data, callback) {
   data.parsed.forEach(function (eventData, idx) {
-    if (!eventData.title || !eventData.description || !eventData.attendees ||
+    if (!eventData.title || !eventData.description || !eventData.estimatedAttendees ||
       !eventData.organizerUsername || !eventData.beginDate || !eventData.length ||
       !eventData.location || !eventData.skillLevel || !eventData.ageGroup) {
       console.error(new Error('Event at row #' + (idx + 1) + ' is invalid, check it\'s values'));
