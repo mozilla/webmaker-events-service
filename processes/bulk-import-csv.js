@@ -37,8 +37,7 @@ if (!env.get('DB_CONNECTIONSTRING') && env.get('cleardbDatabaseUrl')) {
 var userClient = new(require('webmaker-user-client'))({
   endpoint: env.get('LOGIN_URL_WITH_AUTH')
 });
-
-var db = require('../models')(env.get('db'), env.get('LOGIN_URL_WITH_AUTH'), env.get('EVENTS_FRONTEND_URL'));
+var db = require('../models')(env.get('db'), env.get('EVENTS_FRONTEND_URL'), userClient);
 
 function readCSV(filePath, callback) {
   fs.readFile(path.resolve(__dirname, filePath), {

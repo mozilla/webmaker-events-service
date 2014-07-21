@@ -5,7 +5,10 @@ var Habitat = require('habitat');
 
 Habitat.load();
 var env = new Habitat();
-var db = require('../models')(env.get('db'), env.get('LOGIN_URL_WITH_AUTH'), env.get('EVENTS_FRONTEND_URL'));
+var userClient = new(require('webmaker-user-client'))({
+  endpoint: env.get('LOGIN_URL_WITH_AUTH')
+});
+var db = require('./models')(env.get('db'), env.get('EVENTS_FRONTEND_URL'), userClient);
 var remoUrl = 'https://reps.mozilla.org/api/v1/event/?offset=0&limit=0&categories__name__iexact=webmaker&start__gte=' + moment().format('YYYY-MM-DD');
 var source = 'mozreps';
 

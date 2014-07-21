@@ -87,6 +87,11 @@ module.exports = function (db, userClient) {
 
   function createAssociations(event, type, instances) {
     return new Promise(function (resolve, reject) {
+
+      if (!instances) {
+        return resolve.call(null, event);
+      }
+
       var model = db[type];
 
       instances.forEach(function (instance) {
@@ -104,6 +109,9 @@ module.exports = function (db, userClient) {
   }
 
   function associationsToCreate(eventId, values) {
+    if (!values) {
+      return [];
+    }
     return values.filter(function (a) {
       return typeof a.id === 'undefined';
     }).map(function (a) {
@@ -386,6 +394,7 @@ module.exports = function (db, userClient) {
                 fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'estimatedAttendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']
               }, function (err, csv) {
                 if (err) {
+                  console.error(err.stack);
                   res.send(500, err);
                 } else {
                   res.type('text/csv');
@@ -396,6 +405,7 @@ module.exports = function (db, userClient) {
 
           })
           .error(function (err) {
+            console.error(err.stack);
             res.statusCode = 500;
             res.json(err);
           });
@@ -532,7 +542,7 @@ module.exports = function (db, userClient) {
         .catch(function (err) {
           console.log(err.stack);
           res.json(500, {
-            error: err.toString()
+            error: err
           });
         });
     },
@@ -645,7 +655,7 @@ module.exports = function (db, userClient) {
               eventInstance.setTags(tagDAOs);
               res.send('Event record updated');
             }, function fail(error) {
-              console.log(error.stack);
+              console.error(error.stack);
               res.json(500, error);
             });
         })
@@ -690,10 +700,12 @@ module.exports = function (db, userClient) {
               res.send('Event deleted');
             })
             .error(function (err) {
+              console.error(err.stack);
               res.json(500, err);
             });
         })
         .error(function (err) {
+          console.error(err.stack);
           res.json(500, err);
         });
     }

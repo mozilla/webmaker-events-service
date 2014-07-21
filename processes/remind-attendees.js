@@ -11,13 +11,12 @@ Habitat.load();
 tzwhere.init();
 
 var env = new Habitat();
-var db = require('../models')(env.get('db'), env.get('LOGIN_URL_WITH_AUTH'), env.get('EVENTS_FRONTEND_URL'));
 var tomorrow = new Date();
 tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 var userClient = new WebmakerUserClient({
   endpoint: env.get('LOGIN_URL_WITH_AUTH')
 });
-
+var db = require('../models')(env.get('db'), env.get('EVENTS_FRONTEND_URL'), userClient);
 var q = async.queue(function (attendee, callback) {
   userClient.get.byId(attendee.userID, function (login_error, user) {
     if (login_error) {

@@ -43,6 +43,8 @@ module.exports = function (env, app, models, userClient) {
   app.options('*', cors.withAuth);
 
   // CAUTION: Use with 'dev' db only
-  app.get('/dev/fake', cors.readOnly, auth.dev, dev.fake);
-
+  if (process.NODE_ENV !== 'production') {
+    app.get('/dev/fake', cors.readOnly, auth.dev, dev.fake);
+    app.get('/dev/session', cors.readOnly, auth.dev, dev.fakeSession);
+  }
 };

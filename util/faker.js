@@ -18,7 +18,7 @@ module.exports = function () {
       estimatedAttendees: faker.Helpers.randomNumber(500),
       registerLink: 'https://' + faker.Internet.domainName() + '/eventpage',
       organizer: faker.Internet.email(),
-      organizerId: faker.Name.firstName() + faker.Helpers.randomNumber(100),
+      organizerId: 'user' + faker.Helpers.randomNumber(100),
       featured: false,
       ageGroup: (['', 'kids', 'youth', 'adults'])[Math.floor(Math.random() * 4)],
       skillLevel: (['', 'beginner', 'intermediate', 'advanced'])[Math.floor(Math.random() * 4)],
@@ -43,6 +43,26 @@ module.exports = function () {
       events.push(self.event());
     }
     return events;
+  };
+
+  self.session = function (isAdmin, isMentor, isSupermentor) {
+    var email = faker.Internet.email();
+    return {
+      user: {
+        avatar: 'https://secure.gravatar.com/avatar/bf2af31baeacda7ffdc4b3523047f94c?d=https%3A%2F%2Fstuff.webmaker.org%2Favatars%2Fwebmaker-avatar-200x200.png',
+        email: email,
+        emailHash: 'bf2af31baeacda7ffdc4b3523047f94c',
+        id: 1,
+        isAdmin: !!isAdmin,
+        isMentor: !!isMentor,
+        isSuperMentor: !!isSupermentor,
+        sendEventCreationEmails: true,
+        sendCoorganizerRequestEmails: true,
+        sendMentorRequestEmails: true,
+        username: 'k88hudson'
+      },
+      email: email
+    };
   };
 
 };

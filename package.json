@@ -35,6 +35,8 @@
     "grunt-cli": "0.1.13",
     "grunt-contrib-jshint": "~0.10.0",
     "jit-grunt": "~0.7.0",
-    "grunt-jsbeautifier": "~0.2.7"
+    "grunt-jsbeautifier": "~0.2.7",
+    "supertest-session": "0.0.2",
+    "superagent": "^0.18.2"
   }
 }

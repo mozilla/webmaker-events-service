@@ -1,15 +1,11 @@
 var Sequelize = require('sequelize');
-var WebmakerUserClient = require('webmaker-user-client');
 var hatchet = require('hatchet');
 
-module.exports = function (options, login_url_with_auth, events_url) {
+module.exports = function (options, eventsUrl, userClient, callback) {
 
   options = options || {};
 
   var sequelize;
-  var userClient = new WebmakerUserClient({
-    endpoint: login_url_with_auth
-  });
 
   // MySQL with settings
   if (options.dialect === 'mysql' && options.database) {
@@ -69,10 +65,13 @@ module.exports = function (options, login_url_with_auth, events_url) {
 
   // Sync
   sequelize.sync().complete(function (err) {
+    callback = callback || function (err, ok) {
+      console.log(err || ok);
+    };
     if (err) {
-      console.log(err);
+      callback(err);
     } else {
-      console.log('Successfully synced.');
+      callback(null, 'Successfully synced.');
     }
   });
 
@@ -119,8 +118,8 @@ module.exports = function (options, login_url_with_auth, events_url) {
               username: user.username,
               email: user.email,
               eventName: eventsById[coorg.EventId].title,
-              eventUrl: events_url + '/#!/events/' + coorg.EventId,
-              eventEditUrl: events_url + '/#!/edit/' + coorg.EventId,
+              eventUrl: eventsUrl + '/#!/events/' + coorg.EventId,
+              eventEditUrl: eventsUrl + '/#!/edit/' + coorg.EventId,
               locale: user.prefLocale,
             };
             hatchet.send('event_coorganizer_added', data);
@@ -168,11 +167,11 @@ module.exports = function (options, login_url_with_auth, events_url) {
               username: user && user.username,
               email: request.email,
               eventName: eventsById[request.EventId].title,
-              eventUrl: events_url + '/#!/events/' + request.EventId,
+              eventUrl: eventsUrl + '/#!/events/' + request.EventId,
               organizerUsername: eventsById[request.EventId].organizerId,
               locale: user && user.prefLocale,
-              confirmUrlYes: events_url + '/#!/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
-              confirmUrlNo: events_url + '/#!/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
+              confirmUrlYes: eventsUrl + '/#!/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
+              confirmUrlNo: eventsUrl + '/#!/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
             });
           });
 

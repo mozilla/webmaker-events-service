@@ -18,6 +18,11 @@ module.exports = function (db) {
       };
     },
 
+    fakeSession: function (req, res) {
+      req.session = faker.session(req.query.isAdmin, req.query.isSuperMentor, req.query.isMentor);
+      res.send(200);
+    },
+
     // Use with caution
     fake: function (req, res, next) {
 

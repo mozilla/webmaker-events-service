@@ -45,28 +45,45 @@ describe('app', function () {
   // Server and db config
   Habitat.load('.env-test');
   var env = new Habitat();
-  var db = require('../models')({
+  var app;
+  var server;
+
+  var dbConfig = {
     db: env.get('DB_NAME'),
     user: env.get('DB_USER'),
     password: env.get('DB_PASSWORD'),
     storage: env.get('STORAGE')
+  };
+
+  var userClient = new(require('webmaker-user-client'))({
+    endpoint: env.get('LOGIN_URL_WITH_AUTH')
   });
-  var app = require('../config')(env, db);
-  var server;
-  require('../routes')(env, app, db);
 
   before(function (done) {
-    // Run server
-    server = app.listen(env.get('port'), function (err) {
+    var self = this;
+    var db = require('../models')(dbConfig, env.get('EVENTS_FRONTEND_URL'), userClient, function (err) {
       if (err) {
-        done(err);
-      } else {
-        done();
+        return done(err);
       }
+      app = require('../config')(env, db);
+      var Session = require('supertest-session')({
+        app: app
+      });
+      require('../routes')(env, app, db);
+      // Run server
+      self.session = new Session();
+      server = app.listen(env.get('port'), function (err) {
+        if (err) {
+          done(err);
+        } else {
+          done();
+        }
+      });
     });
   });
 
   after(function (done) {
+    this.session.destroy();
     if (server.close) {
       server.close(function () {
         done();
@@ -79,107 +96,142 @@ describe('app', function () {
     done();
   });
 
-  it('should create some fake events', function () {
+  it('should create some fake events', function (done) {
     supertest(app)
       .get('/dev/fake?amount=10')
       .expect(200)
       .end(function (err) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
-  it('should return events from GET /events', function () {
+  it('should return events from GET /events', function (done) {
     supertest(app)
       .get('/events')
       .set('Accept', 'application/json')
       .expect(200)
-      .end(function (err) {
+      .end(function (err, res) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
-  it('should return the first event from /events/1', function () {
+  it('should return the first event from /events/1', function (done) {
     supertest(app)
       .get('/events/1')
       .set('Accept', 'application/json')
       .expect(200)
       .end(function (err) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
-  it('should create a valid event', function () {
+  it('should login', function (done) {
+    this.session
+      .get('/dev/session')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end(function (err) {
+        // session should be set
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+  });
+
+  it('should create a valid event', function (done) {
     var newEvent = faker.event();
-    supertest(app)
+    this.session
       .post('/events')
       .send(newEvent)
       .set('Accept', 'application/json')
       .expect(200)
       .end(function (err) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
-  it('should get an error when creating an invalid event', function () {
+  it('should get an error when creating an invalid event', function (done) {
     var badEvent = faker.invalidEvent();
-    supertest(app)
+    this.session
       .post('/events')
       .send(badEvent)
       .set('Accept', 'application/json')
       .expect(500)
       .end(function (err, res) {
         if (err) {
-          throw err;
+          return done(err);
         }
-        var validationErrors = res.body;
+        var validationErrors = res.body.error;
         (validationErrors).should.have.property('latitude');
+        done();
       });
   });
 
-  it('should update an event', function () {
+  it('should login as admin', function (done) {
+    this.session
+      .get('/dev/session?isAdmin=true')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end(function (err) {
+        // session should be set
+        if (err) {
+          return done(err);
+        }
+        done();
+      });
+  });
+
+  it('should update an event', function (done) {
     var newEvent = faker.event();
-    supertest(app)
+    this.session
       .put('/events/1')
       .send(newEvent)
       .set('Accept', 'application/json')
       .expect(200)
-      .end(function (err, res) {
-        console.log(err, res.body);
+      .end(function (err) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
-  it('should delete an event', function () {
-    supertest(app)
+  it('should delete an event', function (done) {
+    this.session
       .del('/events/7')
       .set('Accept', 'application/json')
       .expect(200)
       .end(function (err, res) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
-  it('should return a 404 when an event is not found', function () {
-    supertest(app)
+  it('should return a 404 when an event is not found', function (done) {
+    this.session
       .del('/events/10000')
       .set('Accept', 'application/json')
       .expect(404)
       .end(function (err, res) {
         if (err) {
-          throw err;
+          return done(err);
         }
+        done();
       });
   });
 
