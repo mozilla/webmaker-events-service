@@ -6,6 +6,12 @@
 
  module.exports = function (db, userClient) {
 
+   var COUNT_SQL_QUERY = 'SELECT COUNT(DISTINCT(`Event`.`id`)) AS `COUNT` FROM `Events` AS `Event` ' +
+     'LEFT OUTER JOIN `Coorganizers` AS `Coorganizers` ON `Event`.`id` = `Coorganizers`.`EventId` ' +
+     'LEFT OUTER JOIN `Mentors` AS `Mentors` ON `Event`.`id` = `Mentors`.`EventId` ' +
+     'LEFT OUTER JOIN `EventsTags` AS `Tags.EventsTag` ON `Event`.`id` = `Tags.EventsTag`.`EventId` ' +
+     'LEFT OUTER JOIN `Tags` AS `Tags` ON `Tags`.`id` = `Tags.EventsTag`.`TagId` WHERE ';
+
    /**
     * De-dupe and lowercase groups of tags
     * @param  {Array} tags An array of tags as Strings
@@ -204,11 +210,13 @@
          var limit;
          var rangeStart;
          var rangeEnd;
+         var beginDate;
 
          if (after) {
-           if ((new Date(after)).toString() !== 'Invalid Date') {
+           beginDate = new Date(after);
+           if (beginDate.toString() !== 'Invalid Date') {
              query.beginDate = {
-               gte: new Date(after)
+               gte: beginDate
              };
            } else {
              return res.json(500, {
@@ -265,14 +273,12 @@
            limit = rangeEnd - rangeStart + 1;
          }
 
-         // Can't use findAndCountAll(), because the included models will be counted erroneously.
+         // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
+         // This is fixed on their master branch, and should ship with Sequelize v2.0.0
          // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
-         db.event.count({
-           unique: 'id',
-           where: query
-         })
-           .then(function (count) {
-             eventCount = count;
+         db.sequelize.query(COUNT_SQL_QUERY + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(query))
+           .then(function (data) {
+             eventCount = data[0].COUNT;
              return db.event.findAll({
                offset: rangeStart || null,
                limit: limit || null,
@@ -299,12 +305,13 @@
              var publicData = _.invoke(events, 'toFilteredJSON', true);
 
              if (!req.query.csv) {
-               var contentRange = req.headers.range + '/' + eventCount;
 
                // Headers for pagination
-               res.header('Accept-Ranges', 'items');
-               res.header('Range-Unit', 'items');
-               res.header('Content-Range', contentRange);
+               if (req.headers.range) {
+                 res.header('Accept-Ranges', 'items');
+                 res.header('Range-Unit', 'items');
+                 res.header('Content-Range', req.headers.range + '/' + eventCount);
+               }
 
                res.json(publicData);
              } else {
