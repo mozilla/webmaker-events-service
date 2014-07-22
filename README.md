@@ -208,7 +208,9 @@ For protected routes, make sure you have a session set.
       <strong>Query parameters:</strong><br><br>
       <code>order</code> (Sort order of returned array. e.g. 'beginDate DESC'. Defaults to 'beginDate')
       <br>
-      <code>organizerId</code> (Constrain to events created by a user. e.g. 'mike_danton')
+      <code>organizerId</code> (Constrain to events created by a user – e.g. 'mike_danton')
+      <br>
+      <code>superuserId</code> (Constrain to events that are created, mentored, and/or coorganized by a user – e.g. 'somedude')
       <br>
       <code>after</code> (Return only events post-`after` time. Must be a string usable by `Date.parse`.)
       <br>
