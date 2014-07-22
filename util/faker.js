@@ -15,7 +15,7 @@ module.exports = function () {
       city: faker.Address.city(),
       beginDate: new Date(2015, Math.random() * 12, Math.random() * 28),
       country: faker.Name.firstName() + 'land',
-      attendees: faker.Helpers.randomNumber(500),
+      estimatedAttendees: faker.Helpers.randomNumber(500),
       registerLink: 'https://' + faker.Internet.domainName() + '/eventpage',
       organizer: faker.Internet.email(),
       organizerId: faker.Name.firstName() + faker.Helpers.randomNumber(100),
