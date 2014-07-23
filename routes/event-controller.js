@@ -238,10 +238,11 @@ module.exports = function (db, userClient) {
         controller.get.all(req, res);
       },
       all: function (req, res) {
-        var order = req.query.order || 'beginDate';
+        var order = [[ 'beginDate', 'ASC' ]];
         var organizerId = req.query.organizerId;
         var userId = req.query.userId;
         var after = req.query.after;
+        var before = req.query.before;
         var dedupe = req.query.dedupe || false;
         var tagFilter = req.query.tag || null;
         var searchTerm = req.query.search || false;
@@ -256,6 +257,20 @@ module.exports = function (db, userClient) {
         var rangeStart;
         var rangeEnd;
         var beginDate;
+
+        if (before) {
+          // Before query needs to be in DESC order
+          order = [[ 'beginDate', ' DESC' ]];
+          if ((new Date(before)).toString() !== 'Invalid Date') {
+            query.beginDate = {
+              lte: new Date(before)
+            };
+          } else {
+            return res.json(500, {
+              error: 'Malformed before date'
+            });
+          }
+        }
 
         if (after) {
           beginDate = new Date(after);
@@ -348,7 +363,7 @@ module.exports = function (db, userClient) {
               limit: limit || null,
               // need to wrap order in an array because of a sequelize v1.7.x bug
               // https://github.com/sequelize/sequelize/issues/1596#issuecomment-39698213
-              order: [order],
+              order: order,
               where: query,
               include: [
                 db.coorg,
