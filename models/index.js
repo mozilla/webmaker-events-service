@@ -87,7 +87,9 @@ module.exports = function (options, login_url_with_auth, events_url) {
     });
 
     Event.findAll({
-      id: event_ids
+      where: {
+        id: event_ids
+      }
     })
       .then(function (events) {
         var eventsById = {};
@@ -138,7 +140,9 @@ module.exports = function (options, login_url_with_auth, events_url) {
     });
 
     Event.findAll({
-      id: event_ids
+      where: {
+        id: event_ids
+      }
     })
       .then(function (events) {
         var eventsById = {};
