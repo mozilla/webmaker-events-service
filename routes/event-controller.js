@@ -206,13 +206,13 @@ module.exports = function (db, userClient) {
    * @param {Number} lng - Longitude
    * @param {Number} radius - radius (Kilometres)
    */
-  function getBoundingCoordinates( lat, lng, radius ) {
+  function getBoundingCoordinates(lat, lng, radius) {
 
     // The radius of the Earth in Kilometres
     var earthsRadius = 6371;
 
     var latValue = radToDeg(radius / earthsRadius),
-        lngValue = radToDeg(radius / earthsRadius / Math.cos(degToRad(lat)));
+      lngValue = radToDeg(radius / earthsRadius / Math.cos(degToRad(lat)));
 
     return {
       maxLat: lat + latValue,
@@ -262,15 +262,15 @@ module.exports = function (db, userClient) {
           }
         }
 
-        if ( lat && lng && radius ) {
-          if ( radius <= 0 ) {
+        if (lat && lng && radius) {
+          if (radius <= 0) {
             radius = 100;
-          // Arbitrary number, can be removed/changed
-          } else if ( radius >= 2000 ) {
+            // Arbitrary number, can be removed/changed
+          } else if (radius >= 2000) {
             radius = 2000;
           }
 
-          boundingCoordinates = getBoundingCoordinates( +lat, +lng, +radius );
+          boundingCoordinates = getBoundingCoordinates(+lat, +lng, +radius);
 
           query.latitude = {
             between: [boundingCoordinates.minLat, boundingCoordinates.maxLat]
