@@ -235,4 +235,151 @@ describe('app', function () {
       });
   });
 
+  it('should return the related event (username)', function (done) {
+    var eventSettings = {
+      organizerId: 'username'
+    };
+
+    var event1 = faker.event(eventSettings),
+      event2 = faker.event(eventSettings),
+      self = this;
+
+    function errFn(err) {
+      if (err) {
+        return done(err);
+      }
+    }
+
+    this.session
+      .post('/events')
+      .send(event1)
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect(function (event1resp) {
+        self.session
+          .post('/events')
+          .send(event2)
+          .set('Accept', 'application/json')
+          .expect(200)
+          .expect(function (event2resp) {
+            self.session
+              .get('/events/' + event1resp.body.id + '/related')
+              .set('Accept', 'application/json')
+              .expect(200)
+              .expect(function (related) {
+                if (!related.body || related.body[0].id !== event2resp.body.id) {
+                  return new Error('The related event ID should match the expected value');
+                }
+                return;
+              }).end(function (err) {
+                if (err) {
+                  return done(err);
+                }
+                done();
+              });
+            return;
+          })
+          .end(errFn);
+        return;
+      }).end(errFn);
+  });
+
+  it('should return the related event (geographically)', function (done) {
+    var eventSettings = {
+      lat: 56,
+      lng: 134
+    };
+
+    var event1 = faker.event(eventSettings),
+      event2 = faker.event(eventSettings),
+      self = this;
+
+    function errFn(err) {
+      if (err) {
+        return done(err);
+      }
+    }
+
+    this.session
+      .post('/events')
+      .send(event1)
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect(function (event1resp) {
+        self.session
+          .post('/events')
+          .send(event2)
+          .set('Accept', 'application/json')
+          .expect(200)
+          .expect(function (event2resp) {
+            self.session
+              .get('/events/' + event1resp.body.id + '/related')
+              .set('Accept', 'application/json')
+              .expect(200)
+              .expect(function (related) {
+                if (!related.body || related.body[0].id !== event2resp.body.id) {
+                  return new Error('The related event ID should match the expected value');
+                }
+                return;
+              }).end(function (err) {
+                if (err) {
+                  return done(err);
+                }
+                done();
+              });
+            return;
+          })
+          .end(errFn);
+        return;
+      }).end(errFn);
+  });
+
+  it('should return the related event (tags)', function (done) {
+    var eventSettings = {
+      tags: ['html']
+    };
+
+    var event1 = faker.event(eventSettings),
+      event2 = faker.event(eventSettings),
+      self = this;
+
+    function errFn(err) {
+      if (err) {
+        return done(err);
+      }
+    }
+
+    this.session
+      .post('/events')
+      .send(event1)
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect(function (event1resp) {
+        self.session
+          .post('/events')
+          .send(event2)
+          .set('Accept', 'application/json')
+          .expect(200)
+          .expect(function (event2resp) {
+            self.session
+              .get('/events/' + event1resp.body.id + '/related')
+              .set('Accept', 'application/json')
+              .expect(200)
+              .expect(function (related) {
+                if (!related.body || related.body[0].id !== event2resp.body.id) {
+                  return new Error('The related event ID should match the expected value');
+                }
+                return;
+              }).end(function (err) {
+                if (err) {
+                  return done(err);
+                }
+                done();
+              });
+            return;
+          })
+          .end(errFn);
+        return;
+      }).end(errFn);
+  });
 });

@@ -241,6 +241,13 @@ For protected routes, make sure you have a session set.
     <td>Returns a single event object where the id matches <code>:id</code></td>
   </tr>
   <tr>
+    <td><code>GET</code></td>
+    <td>/events/:id/related</td>
+    <td></td>
+    <td>No</td>
+    <td>Returns events that are related to the event specified by <code>:id</code>. Related events are those which have either the same organizer, take place close to the event given or have been tagged similarly. Events are returned sorted by beginDate.</td>
+  </tr>
+  <tr>
     <td><code>POST</code></td>
     <td>/events</td>
     <td><code>{{event object}}</code></td>

@@ -1,7 +1,7 @@
 var hatchet = require('hatchet');
 var json2csv = require('json2csv');
 var _ = require('lodash');
-var Promise = require('bluebird');
+var bPromise = require('bluebird');
 var Sequelize = require('sequelize');
 
 module.exports = function (db, userClient) {
@@ -37,7 +37,7 @@ module.exports = function (db, userClient) {
    */
 
   function storeTags(tagsToStore) {
-    return new Promise(function (resolve, reject) {
+    return new bPromise(function (resolve, reject) {
       if (!tagsToStore || !tagsToStore.length) {
         resolve.call(null, []);
       }
@@ -86,7 +86,7 @@ module.exports = function (db, userClient) {
   }
 
   function createAssociations(event, type, instances) {
-    return new Promise(function (resolve, reject) {
+    return new bPromise(function (resolve, reject) {
 
       if (!instances) {
         return resolve.call(null, event);
@@ -350,7 +350,7 @@ module.exports = function (db, userClient) {
           limit = rangeEnd - rangeStart + 1;
         }
 
-        (username ? userClient.get.byUsernameAsync(username) : Promise.resolve())
+        (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
           .then(function (userData) {
             if (userData) {
               var userID = userData.user.id;
@@ -517,6 +517,76 @@ module.exports = function (db, userClient) {
           }, function error(err) {
             res.json(500, err);
           });
+      },
+      related: function (req, res) {
+        db.event
+          .find({
+            where: {
+              id: req.params.id
+            },
+            include: [{
+              model: db.tag,
+              attributes: ['name']
+            }]
+          }).then(function success(event) {
+            var boundingCoordinates,
+              query,
+              andQuery,
+              orQueries = [];
+
+            andQuery = {
+              beginDate: {
+                gte: new Date()
+              },
+              id: {
+                not: event.id
+              }
+            };
+
+            orQueries.push({
+              organizerId: event.organizerId
+            });
+
+            if (event.latitude && event.longitude) {
+              // events within 500KM
+              boundingCoordinates = getBoundingCoordinates(event.latitude, event.longitude, 500);
+
+              orQueries.push(Sequelize.and({
+                latitude: {
+                  between: [boundingCoordinates.minLat, boundingCoordinates.maxLat]
+                }
+              }, {
+                longitude: {
+                  between: [boundingCoordinates.minLng, boundingCoordinates.maxLng]
+                }
+              }));
+            }
+
+            if (event.tags.length) {
+              orQueries.push({
+                'Tags.name': event.tags.map(function (tag) {
+                  return tag.name;
+                }).filter(function (tag, pos, arr) {
+                  return arr.indexOf(tag) === pos;
+                })
+              });
+            }
+
+            query = Sequelize.and(andQuery, Sequelize.or.apply(Sequelize, orQueries));
+
+            return db.event.findAll({
+              where: query,
+              order: 'beginDate',
+              include: [{
+                model: db.tag,
+                attributes: ['name']
+              }]
+            });
+          }).then(function (events) {
+            res.json(_.invoke(events, 'toFilteredJSON', true));
+          }).error(function error(err) {
+            res.json(500, err);
+          });
       }
     },
 
@@ -651,7 +721,7 @@ module.exports = function (db, userClient) {
             })
             .then(function () {
               if (eventInstance.mentors.length) {
-                return Promise.all(
+                return bPromise.all(
                   eventInstance.mentors.map(function (mentor) {
                     return mentor.save(['bio']);
                   })

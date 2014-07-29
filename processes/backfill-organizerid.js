@@ -1,5 +1,5 @@
 var Habitat = require('habitat');
-var Promise = require('bluebird');
+var bPromise = require('bluebird');
 var async = require('async');
 
 Habitat.load();
@@ -31,7 +31,7 @@ db.event.findAll({
     return arr.indexOf(tag) === pos;
   });
 }).then(function () {
-  return new Promise(function (resolve, reject) {
+  return new bPromise(function (resolve, reject) {
     userClient.get.byEmails(emails, function (err, data) {
       if (err) {
         return reject.call(null, err);
@@ -49,7 +49,7 @@ db.event.findAll({
   console.error(err.toString());
   process.exit(1);
 }).then(function () {
-  return new Promise(function (resolve, reject) {
+  return new bPromise(function (resolve, reject) {
     db.sequelize.transaction(function (t) {
       transaction = t;
       async.eachSeries(events, function (event, done) {

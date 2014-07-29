@@ -18,6 +18,7 @@ module.exports = function (env, app, models, userClient) {
   app.get('/events', cors.withAuth, events.get.all);
   app.get('/events/:id', cors.withAuth, events.get.id);
   app.get('/events/:id/flickr', cors.withAuth, flickr);
+  app.get('/events/:id/related', cors.withAuth, events.get.related);
 
   // Protected routes
   app.post('/events', cors.withAuth, auth.verifyUser, events.post);
