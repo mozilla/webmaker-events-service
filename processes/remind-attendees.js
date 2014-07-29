@@ -53,7 +53,7 @@ var q = async.queue(function (attendee, callback) {
       eventTitle: attendee.event.title,
       eventURL: attendee.event.url,
       organizerEmail: attendee.event.isEmailPublic ? attendee.event.organizer : null,
-      organizerUsername: attendee.event.organizerId
+      organizerUsername: attendee.event.organizerUsername
     }, function (hatchet_error) {
       if (hatchet_error) {
         hatchet_error.from = 'Error from hatchet';
