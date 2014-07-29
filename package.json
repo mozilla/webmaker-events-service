@@ -23,7 +23,7 @@
     "sqlite3": "2.2.0",
     "tzwhere": "^1.0.0",
     "webmaker-auth": "0.1.3",
-    "webmaker-user-client": "0.1.1",
+    "webmaker-user-client": "0.1.2",
     "json2csv": "2.2.1",
     "flickr-simple": "0.0.2"
   },
