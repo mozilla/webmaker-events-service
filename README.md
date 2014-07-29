@@ -218,7 +218,13 @@ For protected routes, make sure you have a session set.
       <br>
       <code>search</code> (Restrict to events with descriptions and/or titles that match the search term.)
       <br>
-      <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)<br><br>
+      <code>csv</code> (Return results as CSV when set to `true`. Defaults to JSON.)
+      <br>
+      <code>lat</code> (Filter for events near the given latitude. Must be a Number, i.e. 32.7356 and must be used with the lng parameter.)
+      <br>
+      <code>lng</code> (Filter for events near the given longitude. Must be a Number, i.e. 0.72356 and must be used with the lat parameter.)
+      <br>
+      <code>radius</code> (Radius (in Kilometres) to restrict event results to from the given lat and lng parameters)<br><br>
       <strong>Custom headers:</strong><br><br>
       Pagination is achieved through standard <a href="http://greenbytes.de/tech/webdav/draft-ietf-httpbis-p5-range-latest.html">range request headers</a> (eg: Accept-Ranges, Range-Unit, Content-Range, Range).
     </td>
