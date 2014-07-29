@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mozilla/webmaker-events-service.svg?branch=master)](https://travis-ci.org/mozilla/webmaker-events-service)
+
 # Webmaker Events Service
 
 https://events-api.webmaker.org
