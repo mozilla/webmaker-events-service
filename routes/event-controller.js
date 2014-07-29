@@ -238,7 +238,9 @@ module.exports = function (db, userClient) {
         controller.get.all(req, res);
       },
       all: function (req, res) {
-        var order = [[ 'beginDate', 'ASC' ]];
+        var order = [
+          ['beginDate', 'ASC']
+        ];
         var organizerId = req.query.organizerId;
         var userId = req.query.userId;
         var after = req.query.after;
@@ -260,7 +262,9 @@ module.exports = function (db, userClient) {
 
         if (before) {
           // Before query needs to be in DESC order
-          order = [[ 'beginDate', ' DESC' ]];
+          order = [
+            ['beginDate', ' DESC']
+          ];
           if ((new Date(before)).toString() !== 'Invalid Date') {
             query.beginDate = {
               lte: new Date(before)
