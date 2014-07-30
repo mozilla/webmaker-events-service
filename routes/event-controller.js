@@ -241,8 +241,8 @@ module.exports = function (db, userClient) {
         var order = [
           ['beginDate', 'ASC']
         ];
-        var organizerId = req.query.organizerId;
-        var userId = req.query.userId;
+
+        var username = req.query.username;
         var after = req.query.after;
         var before = req.query.before;
         var dedupe = req.query.dedupe || false;
@@ -308,10 +308,6 @@ module.exports = function (db, userClient) {
           };
         }
 
-        if (organizerId) {
-          query.organizerId = organizerId;
-        }
-
         if (searchTerm) {
           query = Sequelize.and(
             query,
@@ -331,19 +327,6 @@ module.exports = function (db, userClient) {
           );
         }
 
-        if (organizerId && userId) {
-          query = Sequelize.and(
-            query,
-            Sequelize.or({
-              organizerId: organizerId
-            }, {
-              'Mentors.userId': userId
-            }, {
-              'Coorganizers.userId': userId
-            })
-          );
-        }
-
         if (tagFilter) {
           query['Tags.name'] = tagFilter;
         }
@@ -356,10 +339,28 @@ module.exports = function (db, userClient) {
           limit = rangeEnd - rangeStart + 1;
         }
 
-        // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
-        // This is fixed on their master branch, and should ship with Sequelize v2.0.0
-        // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
-        db.sequelize.query(COUNT_SQL_QUERY + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(query))
+        (username ? userClient.get.byUsernameAsync(username) : Promise.resolve())
+          .then(function (userData) {
+            if (userData) {
+              var userID = userData.user.id;
+
+              query = Sequelize.and(
+                query,
+                Sequelize.or({
+                  organizerId: username
+                }, {
+                  'Mentors.userId': userID
+                }, {
+                  'Coorganizers.userId': userID
+                })
+              );
+            }
+
+            // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
+            // This is fixed on their master branch, and should ship with Sequelize v2.0.0
+            // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
+            return db.sequelize.query(COUNT_SQL_QUERY + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(query));
+          })
           .then(function (data) {
             eventCount = data[0].COUNT;
             return db.event.findAll({
