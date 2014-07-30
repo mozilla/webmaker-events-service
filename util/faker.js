@@ -57,7 +57,7 @@ module.exports = function () {
         isMentor: !!isMentor,
         isSuperMentor: !!isSupermentor,
         sendEventCreationEmails: true,
-        sendCoorganizerRequestEmails: true,
+        sendCoorganizerNotificationEmails: true,
         sendMentorRequestEmails: true,
         username: 'k88hudson'
       },
