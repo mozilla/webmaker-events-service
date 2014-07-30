@@ -114,7 +114,7 @@ module.exports = function (options, eventsUrl, userClient, callback) {
           records.forEach(function (coorg) {
             var user = usersByUsername[coorg._username];
             var data = {
-              sendEmail: user ? user.sendMentorRequestEmails : true,
+              sendEmail: user ? user.sendCoorganizerNotificationEmails : true,
               username: user.username,
               email: user.email,
               eventName: eventsById[coorg.EventId].title,
