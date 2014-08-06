@@ -258,35 +258,46 @@ module.exports = function (db, userClient) {
         var boundingCoordinates;
         var rangeStart;
         var rangeEnd;
-        var beginDate;
+        var beforeDate;
+        var afterDate;
+
+        // Attempt to parse date strings into objects:
+
+        if (after) {
+          afterDate = new Date(after);
+
+          if (afterDate.toString() === 'Invalid Date') {
+            return res.json(500, {
+              error: 'Malformed after date'
+            });
+          }
+        }
 
         if (before) {
-          // Before query needs to be in DESC order
-          order = [
-            ['beginDate', ' DESC']
-          ];
-          if ((new Date(before)).toString() !== 'Invalid Date') {
-            query.beginDate = {
-              lte: new Date(before)
-            };
-          } else {
+          beforeDate = new Date(before);
+
+          if (beforeDate.toString() === 'Invalid Date') {
             return res.json(500, {
               error: 'Malformed before date'
             });
           }
         }
 
-        if (after) {
-          beginDate = new Date(after);
-          if (beginDate.toString() !== 'Invalid Date') {
-            query.beginDate = {
-              gte: beginDate
-            };
-          } else {
-            return res.json(500, {
-              error: 'Malformed after date'
-            });
-          }
+        // Add date based query options where applicable:
+
+        if (afterDate && beforeDate) {
+          query.beginDate = {
+            lte: beforeDate,
+            gte: afterDate
+          };
+        } else if (beforeDate) {
+          query.beginDate = {
+            lte: beforeDate
+          };
+        } else if (afterDate) {
+          query.beginDate = {
+            gte: afterDate
+          };
         }
 
         if (lat && lng && radius) {

@@ -212,6 +212,8 @@ For protected routes, make sure you have a session set.
       <br>
       <code>after</code> (Return only events post-`after` time. Must be a string usable by `Date.parse`.)
       <br>
+      <code>before</code> (Return only events prior to `before` time. Must be a string usable by `Date.parse`.)
+      <br>
       <code>dedupe</code> (Only allow 1 event of per event title when set to `true`. Defaults to `false`.)
       <br>
       <code>tag</code> (Filter results to a single tag name)
