@@ -137,6 +137,11 @@ module.exports = function (sequelize, t) {
       defaultValue: false,
       allowNull: false
     },
+    isEventPublic: {
+      type: t.BOOLEAN,
+      defaultValue: true,
+      allowNull: false
+    },
     externalSource: {
       type: t.STRING,
       defaultValue: null
