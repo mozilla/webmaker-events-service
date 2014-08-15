@@ -29,7 +29,8 @@ module.exports = function (sequelize, t) {
     'mentors',
     'tags',
     'flickrTag',
-    'makeApiTag'
+    'makeApiTag',
+    'isEventPublic'
   ];
 
   return sequelize.define('Event', {
