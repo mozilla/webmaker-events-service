@@ -151,7 +151,7 @@ module.exports = function (sequelize, t) {
       type: t.STRING,
       defaultValue: null,
       get: function () {
-        return this.getDataValue('url') || '#!/events/' + this.getDataValue('id');
+        return this.getDataValue('url') || '/events/' + this.getDataValue('id');
       }
     },
     flickrTag: {

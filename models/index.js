@@ -118,8 +118,8 @@ module.exports = function (options, eventsUrl, userClient, callback) {
               username: user.username,
               email: user.email,
               eventName: eventsById[coorg.EventId].title,
-              eventUrl: eventsUrl + '/#!/events/' + coorg.EventId,
-              eventEditUrl: eventsUrl + '/#!/edit/' + coorg.EventId,
+              eventUrl: eventsUrl + '/events/' + coorg.EventId,
+              eventEditUrl: eventsUrl + '/edit/' + coorg.EventId,
               locale: user.prefLocale,
             };
             hatchet.send('event_coorganizer_added', data);
@@ -167,11 +167,11 @@ module.exports = function (options, eventsUrl, userClient, callback) {
               username: user && user.username,
               email: request.email,
               eventName: eventsById[request.EventId].title,
-              eventUrl: eventsUrl + '/#!/events/' + request.EventId,
+              eventUrl: eventsUrl + '/events/' + request.EventId,
               organizerUsername: eventsById[request.EventId].organizerId,
               locale: user && user.prefLocale,
-              confirmUrlYes: eventsUrl + '/#!/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
-              confirmUrlNo: eventsUrl + '/#!/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
+              confirmUrlYes: eventsUrl + '/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
+              confirmUrlNo: eventsUrl + '/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
             });
           });
 
