@@ -184,6 +184,15 @@ module.exports = function (sequelize, t) {
         // return tags as ["a"] instead of [{"name": "a"}]
         event.tags = _.pluck(event.tags, 'name');
 
+        // Filter out any duplicate tags leftover from when mixed case tags were allowed
+        // eg: don't allow both `css` and `CSS` to co-exist
+
+        var lowercasedTags = event.tags.map(function (tag) {
+          return tag.toLowerCase();
+        });
+
+        event.tags = _.uniq(lowercasedTags);
+
         if (!showPrivate) {
           return _.pick(event, publicFields);
         }
