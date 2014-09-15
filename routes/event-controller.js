@@ -750,7 +750,7 @@ module.exports = function (db, userClient) {
               }
             })
             .then(function () {
-              return storeTags(updatedAttributes.tags);
+              return storeTags(sanitizeTags(updatedAttributes.tags));
             })
             .then(function (tagDAOs) {
               eventInstance.setTags(tagDAOs);
