@@ -224,6 +224,7 @@ module.exports = function (db, userClient) {
     };
   }
 
+  var MAX_EVENTS_RETURNED = 100;
   var COUNT_SQL_QUERY = 'SELECT DISTINCT(COUNT(*)) AS `count` FROM `Events`';
   var DATA_SQL_QUERY = 'SELECT DISTINCT(`Events`.`id`) FROM `Events`';
   var JOIN_COORGANIZERS_AND_MENTORS = ' LEFT JOIN `Coorganizers` ON `Events`.`id` = `Coorganizers`.`EventId` AND `Coorganizers`.`userId` = :userId LEFT JOIN `Mentors` ON `Events`.`id` = `Mentors`.`EventId` AND `Mentors`.`userId` = :userId';
@@ -254,8 +255,9 @@ module.exports = function (db, userClient) {
         var eventCount;
         var limit;
         var boundingCoordinates;
-        var rangeStart;
-        var rangeEnd;
+        // default to MAX_EVENTS_RETURNED events returned
+        var rangeStart = 0;
+        var rangeEnd = MAX_EVENTS_RETURNED - 1;
         var beforeDate;
         var afterDate;
 
@@ -354,9 +356,16 @@ module.exports = function (db, userClient) {
         if (req.headers.range) {
           rangeStart = parseInt(req.headers.range.split('-')[0], 10);
           rangeEnd = parseInt(req.headers.range.split('-')[1], 10);
-
-          limit = rangeEnd - rangeStart + 1;
         }
+        if (isNaN(rangeStart) || isNaN(rangeEnd)) {
+          rangeStart = 0;
+          rangeEnd = MAX_EVENTS_RETURNED - 1;
+        }
+        if (rangeEnd - rangeStart + 1 > MAX_EVENTS_RETURNED) {
+          rangeEnd = rangeStart + MAX_EVENTS_RETURNED - 1;
+        }
+
+        limit = rangeEnd - rangeStart + 1;
 
         (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
           .then(function (userData) {
@@ -451,13 +460,9 @@ module.exports = function (db, userClient) {
             var publicData = _.invoke(events, 'toFilteredJSON', true);
 
             if (!req.query.csv) {
-
-              // Headers for pagination
-              if (req.headers.range) {
-                res.header('Accept-Ranges', 'items');
-                res.header('Range-Unit', 'items');
-                res.header('Content-Range', req.headers.range + '/' + eventCount);
-              }
+              res.header('Accept-Ranges', 'items');
+              res.header('Range-Unit', 'items');
+              res.header('Content-Range', rangeStart + '-' + rangeEnd + '/' + eventCount);
 
               res.json(publicData);
             } else {
