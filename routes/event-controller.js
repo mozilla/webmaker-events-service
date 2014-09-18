@@ -411,29 +411,71 @@ module.exports = function (db, userClient) {
               res.json(publicData);
             } else {
               var flattenedData = [];
+              var userIds = [];
 
               publicData.forEach(function (event, index) {
-                event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, 'userId') : null;
-                event.mentors = event.mentors.length ? simplifyRecord(event.mentors, 'userId') : null;
-                event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
-
-                flattenedData.push(event);
+                userIds = userIds.concat(event.coorganizers.map(function (c) {
+                  return c.userId;
+                })).concat(event.mentors.map(function (m) {
+                  return m.userId;
+                }));
               });
 
-              json2csv({
-                data: flattenedData,
-                fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'estimatedAttendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']
-              }, function (err, csv) {
+              userClient.get.byIds(userIds, function (err, users) {
                 if (err) {
-                  console.error(err.stack);
-                  res.send(500, err);
-                } else {
-                  res.type('text/csv');
-                  res.send(csv);
+                  return res.send(500, err.toString());
                 }
+
+                if (!users || !Array.isArray(users.users)) {
+                  return res.send(500, 'Couldn\'t find any user ids in login database');
+                }
+
+                var usersById = {};
+
+                users.users.forEach(function (u) {
+                  usersById[u.id] = u;
+                });
+
+                publicData.forEach(function (event, index) {
+                  // Get user data for each userId
+
+                  event.mentors.forEach(function (m) {
+                    var user = usersById[m.userId];
+                    if (!user) {
+                      return;
+                    }
+                    m._email = user.email;
+                  });
+
+                  event.coorganizers.forEach(function (c) {
+                    var user = usersById[c.userId];
+                    if (!user) {
+                      return;
+                    }
+                    c._email = user.email;
+                  });
+
+                  event.coorganizers = event.coorganizers.length ? simplifyRecord(event.coorganizers, '_email') : null;
+                  event.mentors = event.mentors.length ? simplifyRecord(event.mentors, '_email') : null;
+                  event.tags = event.tags.length ? arrayToCSV(event.tags) : null;
+
+                  flattenedData.push(event);
+                });
+
+                json2csv({
+                  data: flattenedData,
+                  fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'estimatedAttendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']
+                }, function (err, csv) {
+                  if (err) {
+                    console.error(err.stack);
+                    res.send(500, err);
+                  } else {
+                    res.type('text/csv');
+                    res.send(csv);
+                  }
+                });
               });
             }
-
           })
           .error(function (err) {
             console.error(err.stack);
