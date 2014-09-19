@@ -6,12 +6,6 @@ var Sequelize = require('sequelize');
 
 module.exports = function (db, userClient) {
 
-  var COUNT_SQL_QUERY = 'SELECT COUNT(DISTINCT(`Event`.`id`)) AS `COUNT` FROM `Events` AS `Event` ' +
-    'LEFT OUTER JOIN `Coorganizers` AS `Coorganizers` ON `Event`.`id` = `Coorganizers`.`EventId` ' +
-    'LEFT OUTER JOIN `Mentors` AS `Mentors` ON `Event`.`id` = `Mentors`.`EventId` ' +
-    'LEFT OUTER JOIN `EventsTags` AS `Tags.EventsTag` ON `Event`.`id` = `Tags.EventsTag`.`EventId` ' +
-    'LEFT OUTER JOIN `Tags` AS `Tags` ON `Tags`.`id` = `Tags.EventsTag`.`TagId` WHERE ';
-
   /**
    * De-dupe and lowercase groups of tags
    * @param  {Array} tags An array of tags as Strings
@@ -230,6 +224,11 @@ module.exports = function (db, userClient) {
     };
   }
 
+  var COUNT_SQL_QUERY = 'SELECT DISTINCT(COUNT(*)) AS `count` FROM `Events`';
+  var DATA_SQL_QUERY = 'SELECT DISTINCT(`Events`.`id`) FROM `Events`';
+  var JOIN_COORGANIZERS_AND_MENTORS = ' LEFT JOIN `Coorganizers` ON `Events`.`id` = `Coorganizers`.`EventId` AND `Coorganizers`.`userId` = :userId LEFT JOIN `Mentors` ON `Events`.`id` = `Mentors`.`EventId` AND `Mentors`.`userId` = :userId';
+  var JOIN_TAGS = ' JOIN `EventsTags` ON `Events`.`id` = `EventsTags`.`EventId` JOIN `Tags` ON `EventsTags`.`TagId` = `Tags`.`id` AND `Tags`.`name` = :tag';
+
   var controller = {
 
     get: {
@@ -238,9 +237,7 @@ module.exports = function (db, userClient) {
         controller.get.all(req, res);
       },
       all: function (req, res) {
-        var order = [
-          ['beginDate', 'ASC']
-        ];
+        var order = '`Events`.`beginDate` ASC';
 
         var username = req.query.username;
         var after = req.query.after;
@@ -252,7 +249,8 @@ module.exports = function (db, userClient) {
         var lng = req.query.lng;
         var radius = req.query.radius;
 
-        var query = {};
+        var whereEvents = [];
+        var replacements = {};
         var eventCount;
         var limit;
         var boundingCoordinates;
@@ -286,18 +284,23 @@ module.exports = function (db, userClient) {
         // Add date based query options where applicable:
 
         if (afterDate && beforeDate) {
-          query.beginDate = {
-            lte: beforeDate,
-            gte: afterDate
-          };
+          whereEvents.push({
+            'Events.beginDate': {
+              between: [afterDate, beforeDate]
+            }
+          });
         } else if (beforeDate) {
-          query.beginDate = {
-            lte: beforeDate
-          };
+          whereEvents.push({
+            'Events.beginDate': {
+              lte: beforeDate
+            }
+          });
         } else if (afterDate) {
-          query.beginDate = {
-            gte: afterDate
-          };
+          whereEvents.push({
+            'Events.beginDate': {
+              gte: afterDate
+            }
+          });
         }
 
         if (lat && lng && radius) {
@@ -310,28 +313,31 @@ module.exports = function (db, userClient) {
 
           boundingCoordinates = getBoundingCoordinates(+lat, +lng, +radius);
 
-          query.latitude = {
-            between: [boundingCoordinates.minLat, boundingCoordinates.maxLat]
-          };
+          whereEvents.push({
+            'Events.latitude': {
+              between: [boundingCoordinates.minLat, boundingCoordinates.maxLat]
+            }
+          });
 
-          query.longitude = {
-            between: [boundingCoordinates.minLng, boundingCoordinates.maxLng]
-          };
+          whereEvents.push({
+            'Events.longitude': {
+              between: [boundingCoordinates.minLng, boundingCoordinates.maxLng]
+            }
+          });
         }
 
         if (searchTerm) {
-          query = Sequelize.and(
-            query,
+          whereEvents.push(
             Sequelize.or({
-              title: {
+              'Events.title': {
                 like: '%' + searchTerm + '%'
               }
             }, {
-              description: {
+              'Events.description': {
                 like: '%' + searchTerm + '%'
               }
             }, {
-              address: {
+              'Events.address': {
                 like: '%' + searchTerm + '%'
               }
             })
@@ -339,7 +345,9 @@ module.exports = function (db, userClient) {
         }
 
         if (tagFilter) {
-          query['Tags.name'] = tagFilter;
+          whereEvents.push({
+            'Tags.name': tagFilter
+          });
         }
 
         // Parse out numerical ranges from "range" header
@@ -352,42 +360,79 @@ module.exports = function (db, userClient) {
 
         (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
           .then(function (userData) {
+            var count_query = COUNT_SQL_QUERY;
+            var data_query = DATA_SQL_QUERY;
+
             if (userData) {
               var userID = userData.user.id;
 
-              query = Sequelize.and(
-                query,
+              whereEvents.push(
                 Sequelize.or({
-                  organizerId: username
+                  'Events.organizerId': username
                 }, {
                   'Mentors.userId': userID
                 }, {
                   'Coorganizers.userId': userID
                 })
               );
+              replacements.userId = userID;
+
+              count_query += JOIN_COORGANIZERS_AND_MENTORS;
+              data_query += JOIN_COORGANIZERS_AND_MENTORS;
+            }
+
+            if (tagFilter) {
+              replacements.tag = tagFilter;
+
+              count_query += JOIN_TAGS;
+              data_query += JOIN_TAGS;
+
+            }
+
+            if (whereEvents.length > 0) {
+              var where_conditions = ' WHERE ' + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(whereEvents);
+              count_query += where_conditions;
+              data_query += where_conditions;
+            }
+
+            data_query += ' ORDER BY ' + order;
+            if (limit) {
+              data_query += db.sequelize.queryInterface.QueryGenerator.addLimitAndOffset({
+                limit: limit,
+                offset: rangeStart
+              });
             }
 
             // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
             // This is fixed on their master branch, and should ship with Sequelize v2.0.0
             // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
-            return db.sequelize.query(COUNT_SQL_QUERY + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(query));
+            return bPromise.join(
+              db.sequelize.query(count_query, null, {
+                raw: true
+              }, replacements),
+              db.sequelize.query(data_query, null, {
+                raw: true
+              }, replacements)
+            );
           })
-          .then(function (data) {
-            eventCount = data[0].COUNT;
+          .spread(function (count_results, data_results) {
+            eventCount = count_results[0].count;
+
             return db.event.findAll({
-              offset: rangeStart || null,
-              limit: limit || null,
-              // need to wrap order in an array because of a sequelize v1.7.x bug
-              // https://github.com/sequelize/sequelize/issues/1596#issuecomment-39698213
               order: order,
-              where: query,
-              include: [
-                db.coorg,
-                db.mentor, {
-                  model: db.tag,
-                  attributes: ['name']
-                }
-              ]
+              where: {
+                id: _.pluck(data_results, 'id')
+              },
+              include: [{
+                model: db.coorg,
+                attributes: ['EventId', 'userId']
+              }, {
+                model: db.mentor,
+                attributes: ['EventId', 'userId']
+              }, {
+                model: db.tag,
+                attributes: ['name']
+              }]
             });
           })
           .then(function (events) {
