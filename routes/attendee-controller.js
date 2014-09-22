@@ -27,7 +27,7 @@ module.exports = function (db, userClient) {
               coorganizers.push(coorg.dataValues.userId);
             });
 
-            var isAuthorizedConsumer = (user && (user.isAdmin || user.username === eventData.organizerId || coorganizers.indexOf(user.id) > -1));
+            var isAuthorizedConsumer = (user && (user.isAdmin || user.id === eventData.organizerId || coorganizers.indexOf(user.id) > -1));
 
             if (eventData.areAttendeesPublic || isAuthorizedConsumer) {
 
@@ -138,7 +138,7 @@ module.exports = function (db, userClient) {
 
           eventData = event.dataValues;
 
-          if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID || req.session.user.username === eventData.organizerId)) {
+          if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID || req.session.user.id === eventData.organizerId)) {
             // Make sure the event exists first
             db.event
               .find({

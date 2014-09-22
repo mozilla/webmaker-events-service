@@ -89,7 +89,7 @@ function verifyUser(data, callback) {
           process.exit(1);
         }
         event.organizer = resp.user.email;
-        event.organizerId = event.organizerUsername;
+        event.organizerId = event.resp.user.id;
         fetchedUsers[event.organizerUsername] = resp.user;
 
         delete event.organizerUsername;
@@ -98,7 +98,7 @@ function verifyUser(data, callback) {
       });
     } else {
       event.organizer = fetchedUsers[event.organizerUsername].email;
-      event.organizerId = event.organizerUsername;
+      event.organizerId = fetchedUsers[event.organizerUsername].id;
       delete event.organizerUsername;
       done(null, event);
     }

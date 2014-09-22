@@ -522,6 +522,8 @@ module.exports = function (db, userClient) {
               return m.userId;
             }));
 
+            userIds.push(event.organizerId);
+
             // Get user data for each userId
             userClient.get.byIds(userIds, function (err, users) {
               if (err) {
@@ -552,6 +554,8 @@ module.exports = function (db, userClient) {
                 m._username = user.username;
                 m._avatar = user.avatar;
               });
+
+              event.organizerUsername = usersById[event.organizerId];
 
               res.json(event.toFilteredJSON(showPrivateData));
             });
@@ -646,48 +650,62 @@ module.exports = function (db, userClient) {
       var eventDAO;
       var tagsToStore = sanitizeTags(req.body.tags);
 
-      db.event.create(req.body)
-        .then(function (event) { // Event is created
+      var event_data = req.body;
 
-          hatchet.send('create_event', {
-            eventId: event.getDataValue('id'),
-            userId: req.session.user.id,
-            username: req.session.user.username,
-            email: req.session.user.email,
-            locale: req.session.user.prefLocale,
-            sendEventCreationEmails: req.session.user.sendEventCreationEmails
-          });
+      userClient.get.byUsername(event_data.organizerUsername, function (err, data) {
+        if (err) {
+          return res.send(500, err.toString());
+        }
+        if (!data || !data.user) {
+          return res.send(500, 'Couldn\'t find organizer with that name');
+        }
 
-          return event;
-        })
-        .then(function (event) {
-          return createAssociations(event, 'mentorRequest', req.body.mentorRequests);
-        })
-        .then(function (event) {
-          return createAssociations(event, 'coorg', req.body.coorganizers);
-        })
-        .then(function (event) { // Find all pre-existing tags
-          // Store a refrence for use later in the promise chain
-          eventDAO = event;
+        event_data.organizerId = data.user.id;
+        delete event_data.organizerUsername;
 
-          return storeTags(tagsToStore);
-        })
-        .then(function (tags) {
-          // Associate tags with the event
-          return eventDAO.setTags(tags);
-        })
-        .then(function () {
-          res.json({
-            message: 'Event created.',
-            id: eventDAO.id
+        db.event.create(event_data)
+          .then(function (event) { // Event is created
+
+            hatchet.send('create_event', {
+              eventId: event.getDataValue('id'),
+              userId: req.session.user.id,
+              username: req.session.user.username,
+              email: req.session.user.email,
+              locale: req.session.user.prefLocale,
+              sendEventCreationEmails: req.session.user.sendEventCreationEmails
+            });
+
+            return event;
+          })
+          .then(function (event) {
+            return createAssociations(event, 'mentorRequest', req.body.mentorRequests);
+          })
+          .then(function (event) {
+            return createAssociations(event, 'coorg', req.body.coorganizers);
+          })
+          .then(function (event) { // Find all pre-existing tags
+            // Store a refrence for use later in the promise chain
+            eventDAO = event;
+
+            return storeTags(tagsToStore);
+          })
+          .then(function (tags) {
+            // Associate tags with the event
+            return eventDAO.setTags(tags);
+          })
+          .then(function () {
+            res.json({
+              message: 'Event created.',
+              id: eventDAO.id
+            });
+          })
+          .catch(function (err) {
+            console.log(err.stack);
+            res.json(500, {
+              error: err
+            });
           });
-        })
-        .catch(function (err) {
-          console.log(err.stack);
-          res.json(500, {
-            error: err
-          });
-        });
+      });
     },
 
     put: function (req, res) {

@@ -1,3 +1,11 @@
+var Habitat = require('habitat');
+
+Habitat.load();
+var env = new Habitat();
+var userClient = new(require('webmaker-user-client'))({
+  endpoint: env.get('LOGIN_URL_WITH_AUTH')
+});
+
 module.exports = function (sequelize, t) {
 
   var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png');
@@ -122,7 +130,7 @@ module.exports = function (sequelize, t) {
         isEmail: true
       }
     },
-    organizerId: t.STRING,
+    organizerId: t.INTEGER,
     featured: {
       type: t.BOOLEAN,
       defaultValue: false,
@@ -169,6 +177,11 @@ module.exports = function (sequelize, t) {
           md5(this.getDataValue('organizer')) +
           '?d=' + defaultGravatar;
       },
+      organizerUsername: function() {
+        return userClient.get.byUsernameAsync(this.getDataValue('organizerId')).then(function(user) {
+          return user.username;
+        });
+      }
     },
     instanceMethods: {
       isCoorganizer: function (userId) {
