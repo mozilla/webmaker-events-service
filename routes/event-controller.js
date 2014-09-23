@@ -3,6 +3,7 @@ var json2csv = require('json2csv');
 var _ = require('lodash');
 var bPromise = require('bluebird');
 var Sequelize = require('sequelize');
+var newrelic = require('newrelic');
 
 module.exports = function (db, userClient) {
 
@@ -367,6 +368,10 @@ module.exports = function (db, userClient) {
 
         limit = rangeEnd - rangeStart + 1;
 
+        newrelic.addCustomParameter('rangeStart', rangeStart);
+        newrelic.addCustomParameter('rangeEnd', rangeEnd);
+        newrelic.addCustomParameter('limit', limit);
+
         (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
           .then(function (userData) {
             var count_query = COUNT_SQL_QUERY;
@@ -430,7 +435,7 @@ module.exports = function (db, userClient) {
               }, replacements)
             );
           })
-          .spread(function (count_results, data_results) {
+          .spread(newrelic.createTracer('db:metadata query', function (count_results, data_results) {
             eventCount = count_results[0].count;
 
             return db.event.findAll({
@@ -449,8 +454,8 @@ module.exports = function (db, userClient) {
                 attributes: ['name']
               }]
             });
-          })
-          .then(function (events) {
+          }))
+          .then(newrelic.createTracer('db:results query', function (events) {
 
             // Don't return multiple events with the same title when dedupe is enabled
             if (dedupe) {
@@ -532,7 +537,7 @@ module.exports = function (db, userClient) {
                 });
               });
             }
-          })
+          }))
           .caught(function (err) {
             console.error(err.stack);
             res.statusCode = err.statusCode ? err.statusCode : 500;

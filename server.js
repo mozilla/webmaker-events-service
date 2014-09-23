@@ -1,4 +1,11 @@
-if (process.env.NEW_RELIC_ENABLED) {
+try {
+  require('newrelic');
+} catch (newrelic_error) {
+  // If newrelic is throwing an error, that means it's not properly configured
+  // On local dev, you can safely ignore this error
+  console.log(newrelic_error.message);
+  process.env.NEW_RELIC_NO_CONFIG_FILE = 'true';
+  process.env.NEW_RELIC_ENABLED = 'false';
   require('newrelic');
 }
 
