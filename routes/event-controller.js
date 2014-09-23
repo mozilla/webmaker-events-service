@@ -363,6 +363,12 @@ module.exports = function (db, userClient) {
             var count_query = COUNT_SQL_QUERY;
             var data_query = DATA_SQL_QUERY;
 
+            if (userData && userData.error) {
+              var user_not_found_error = new Error(userData.error);
+              user_not_found_error.statusCode = 404;
+              return bPromise.reject(user_not_found_error);
+            }
+
             if (userData) {
               var userID = userData.user.id;
 
@@ -521,6 +527,13 @@ module.exports = function (db, userClient) {
                 });
               });
             }
+          })
+          .caught(function (err) {
+            console.error(err.stack);
+            res.statusCode = err.statusCode ? err.statusCode : 500;
+            res.json({
+              error: err.toString()
+            });
           })
           .error(function (err) {
             console.error(err.stack);
