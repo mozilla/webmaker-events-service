@@ -251,7 +251,11 @@ module.exports = function (db, userClient) {
         var lng = req.query.lng;
         var radius = req.query.radius;
 
-        var whereEvents = [];
+        // Constrain to publicly listed events as a baseline for filtration
+        var whereEvents = [{
+          'Events.isEventPublic': true
+        }];
+
         var replacements = {};
         var eventCount;
         var limit;
