@@ -261,6 +261,7 @@ module.exports = function (db, userClient) {
         var rangeEnd = MAX_EVENTS_RETURNED - 1;
         var beforeDate;
         var afterDate;
+        var timing_segment;
 
         // Attempt to parse date strings into objects:
 
@@ -368,9 +369,11 @@ module.exports = function (db, userClient) {
 
         limit = rangeEnd - rangeStart + 1;
 
-        newrelic.addCustomParameter('rangeStart', rangeStart);
-        newrelic.addCustomParameter('rangeEnd', rangeEnd);
+        newrelic.addCustomParameter('record_start', rangeStart);
+        newrelic.addCustomParameter('record_end', rangeEnd);
         newrelic.addCustomParameter('limit', limit);
+
+        timing_segment = Date.now();
 
         (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
           .then(function (userData) {
@@ -399,6 +402,8 @@ module.exports = function (db, userClient) {
 
               count_query += JOIN_COORGANIZERS_AND_MENTORS;
               data_query += JOIN_COORGANIZERS_AND_MENTORS;
+
+              newrelic.addCustomParameter('username_search', Date.now() - timing_segment);
             }
 
             if (tagFilter) {
@@ -423,9 +428,8 @@ module.exports = function (db, userClient) {
               });
             }
 
-            // We cannot use count() or findAndCountAll() because they aren't able to apply the distinct function to the column being counted.
-            // This is fixed on their master branch, and should ship with Sequelize v2.0.0
-            // Sequelize Issue: https://github.com/sequelize/sequelize/issues/1773
+            timing_segment = Date.now();
+
             return bPromise.join(
               db.sequelize.query(count_query, null, {
                 raw: true
@@ -435,8 +439,11 @@ module.exports = function (db, userClient) {
               }, replacements)
             );
           })
-          .spread(newrelic.createTracer('db:metadata query', function (count_results, data_results) {
+          .spread(function (count_results, data_results) {
+            newrelic.addCustomParameter('db:metadata', Date.now() - timing_segment);
+
             eventCount = count_results[0].count;
+            timing_segment = Date.now();
 
             return db.event.findAll({
               order: order,
@@ -454,8 +461,9 @@ module.exports = function (db, userClient) {
                 attributes: ['name']
               }]
             });
-          }))
-          .then(newrelic.createTracer('db:results query', function (events) {
+          })
+          .then(function (events) {
+            newrelic.addCustomParameter('db:results', Date.now() - timing_segment);
 
             // Don't return multiple events with the same title when dedupe is enabled
             if (dedupe) {
@@ -537,7 +545,7 @@ module.exports = function (db, userClient) {
                 });
               });
             }
-          }))
+          })
           .caught(function (err) {
             console.error(err.stack);
             res.statusCode = err.statusCode ? err.statusCode : 500;
