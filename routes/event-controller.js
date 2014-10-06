@@ -226,8 +226,8 @@ module.exports = function (db, userClient) {
   }
 
   var MAX_EVENTS_RETURNED = 100;
-  var COUNT_SQL_QUERY = 'SELECT DISTINCT(COUNT(*)) AS `count` FROM `Events`';
-  var DATA_SQL_QUERY = 'SELECT DISTINCT(`Events`.`id`) FROM `Events`';
+  var COUNT_SQL_QUERY = 'SELECT COUNT(*) AS `count` FROM `Events`';
+  var DATA_SQL_QUERY = 'SELECT `Events`.`id` FROM `Events`';
   var JOIN_COORGANIZERS_AND_MENTORS = ' LEFT JOIN `Coorganizers` ON `Events`.`id` = `Coorganizers`.`EventId` AND `Coorganizers`.`userId` = :userId LEFT JOIN `Mentors` ON `Events`.`id` = `Mentors`.`EventId` AND `Mentors`.`userId` = :userId';
   var JOIN_TAGS = ' JOIN `EventsTags` ON `Events`.`id` = `EventsTags`.`EventId` JOIN `Tags` ON `EventsTags`.`TagId` = `Tags`.`id` AND `Tags`.`name` = :tag';
 
