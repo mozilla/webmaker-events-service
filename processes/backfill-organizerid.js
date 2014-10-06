@@ -60,8 +60,8 @@ db.event.findAll({
         }
         event.organizerId = usersByEmail[event.organizer].username;
         event.save(['organizerId'], {
-          transaction: transaction
-        })
+            transaction: transaction
+          })
           .success(function () {
             done();
           })

@@ -380,7 +380,7 @@ module.exports = function (db, userClient) {
         timing_segment = Date.now();
 
         (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
-          .then(function (userData) {
+        .then(function (userData) {
             var count_query = COUNT_SQL_QUERY;
             var data_query = DATA_SQL_QUERY;
 

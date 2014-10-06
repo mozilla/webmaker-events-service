@@ -11,11 +11,11 @@ module.exports = function (db, userClient) {
         // Grab attendee info if it's public, requesting user is admin/coorg, or user created event
 
         db.event.find({
-          where: {
-            id: eventID
-          },
-          include: [db.coorg, db.attendee]
-        })
+            where: {
+              id: eventID
+            },
+            include: [db.coorg, db.attendee]
+          })
           .then(function success(event) {
             if (!event) {
               res.send(404);
@@ -127,10 +127,10 @@ module.exports = function (db, userClient) {
       }
 
       db.event.find({
-        where: {
-          id: eventID
-        }
-      })
+          where: {
+            id: eventID
+          }
+        })
         .then(function success(event) {
           if (!event) {
             res.send(404);

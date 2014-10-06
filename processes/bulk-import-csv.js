@@ -169,8 +169,8 @@ function create(data, callback) {
         tagsDAOS;
 
       db.event.create(eventData, {
-        transaction: transaction
-      })
+          transaction: transaction
+        })
         .then(function (event) {
           eventDAO = event;
           var tagsToStore = eventData.tags;

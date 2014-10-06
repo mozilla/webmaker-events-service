@@ -86,10 +86,10 @@ module.exports = function (options, eventsUrl, userClient, callback) {
     });
 
     Event.findAll({
-      where: {
-        id: event_ids
-      }
-    })
+        where: {
+          id: event_ids
+        }
+      })
       .then(function (events) {
         var eventsById = {};
         events.forEach(function (event) {
@@ -139,10 +139,10 @@ module.exports = function (options, eventsUrl, userClient, callback) {
     });
 
     Event.findAll({
-      where: {
-        id: event_ids
-      }
-    })
+        where: {
+          id: event_ids
+        }
+      })
       .then(function (events) {
         var eventsById = {};
         events.forEach(function (event) {
