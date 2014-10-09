@@ -250,6 +250,7 @@ module.exports = function (db, userClient) {
         var lat = req.query.lat;
         var lng = req.query.lng;
         var radius = req.query.radius;
+        var locale = req.query.locale;
 
         // Constrain to publicly listed events as a baseline for filtration
         var whereEvents = [{
@@ -355,6 +356,12 @@ module.exports = function (db, userClient) {
         if (tagFilter) {
           whereEvents.push({
             'Tags.name': tagFilter
+          });
+        }
+
+        if (locale) {
+          whereEvents.push({
+            'Events.locale': locale
           });
         }
 
