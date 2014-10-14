@@ -3,6 +3,7 @@ module.exports = function (sequelize, t) {
   var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png');
   var _ = require('lodash');
   var md5 = require('MD5');
+  var langmap = require('langmap');
   var publicFields = [
     'organizerAvatar',
     'id',
@@ -30,7 +31,8 @@ module.exports = function (sequelize, t) {
     'tags',
     'flickrTag',
     'makeApiTag',
-    'isEventPublic'
+    'isEventPublic',
+    'locale'
   ];
 
   return sequelize.define('Event', {
@@ -161,7 +163,16 @@ module.exports = function (sequelize, t) {
     makeApiTag: {
       type: t.STRING,
       defaultValue: null
-    }
+    },
+    locale: {
+      type: t.STRING,
+      defaultValue: null,
+      validate: {
+        isIn: [
+          Object.keys(langmap)
+        ]
+      }
+    },
   }, {
     getterMethods: {
       organizerAvatar: function () {
