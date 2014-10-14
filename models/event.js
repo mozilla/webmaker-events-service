@@ -167,6 +167,7 @@ module.exports = function (sequelize, t) {
     locale: {
       type: t.STRING,
       defaultValue: null,
+      allowNull: true,
       validate: {
         isIn: [
           Object.keys(langmap)
