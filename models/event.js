@@ -174,6 +174,11 @@ module.exports = function (sequelize, t) {
         ]
       }
     },
+    sentPostEventEmailToHost: {
+      type: t.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    }
   }, {
     getterMethods: {
       organizerAvatar: function () {
