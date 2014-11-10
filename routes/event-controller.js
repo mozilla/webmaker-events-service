@@ -5,7 +5,7 @@ var bPromise = require('bluebird');
 var Sequelize = require('sequelize');
 var newrelic = require('newrelic');
 
-module.exports = function (db, userClient) {
+module.exports = function (db, userClient, eventsFrontendURL) {
 
   /**
    * De-dupe and lowercase groups of tags
@@ -737,7 +737,10 @@ module.exports = function (db, userClient) {
         .then(function (event) { // Event is created
 
           hatchet.send('create_event', {
+            eventDate: event.beginDate,
             eventId: event.getDataValue('id'),
+            eventTags: tagsToStore,
+            eventURL: eventsFrontendURL + '/events/' + event.id,
             userId: req.session.user.id,
             username: req.session.user.username,
             email: req.session.user.email,
