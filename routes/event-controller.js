@@ -3,6 +3,7 @@ var json2csv = require('json2csv');
 var _ = require('lodash');
 var bPromise = require('bluebird');
 var Sequelize = require('sequelize');
+var moment = require('moment-timezone');
 var newrelic = require('newrelic');
 
 module.exports = function (db, userClient, eventsFrontendURL) {
@@ -737,7 +738,9 @@ module.exports = function (db, userClient, eventsFrontendURL) {
         .then(function (event) { // Event is created
 
           hatchet.send('create_event', {
-            eventDate: event.beginDate,
+            eventDate: moment(event.beginDate)
+              .lang(req.session.user.prefLocale)
+              .format('LLL'),
             eventId: event.getDataValue('id'),
             eventTags: tagsToStore,
             eventURL: eventsFrontendURL + '/events/' + event.id,
