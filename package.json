@@ -1,6 +1,6 @@
 {
   "name": "webmaker-events-service",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "scripts": {
     "test": "grunt"
   },
