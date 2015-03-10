@@ -10,18 +10,18 @@ module.exports = (grunt) ->
     jshint:
       all: jsFiles
       options:
-        jshintrc: ".jshintrc"
+        jshintrc: "node_modules/mofo-style/linters/.jshintrc"
     jsbeautifier:
       modify:
         src: jsFiles
         options:
-          config: ".jsbeautifyrc"
+          config: "node_modules/mofo-style/linters/.jsbeautifyrc"
 
       validate:
         src: jsFiles
         options:
           mode: "VERIFY_ONLY"
-          config: ".jsbeautifyrc"
+          config: "node_modules/mofo-style/linters/.jsbeautifyrc"
 
   grunt.registerTask "default", [
     "jshint"

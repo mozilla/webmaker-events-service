@@ -14,6 +14,7 @@
     "habitat": "1.1.0",
     "hatchet": "0.2.2",
     "json2csv": "2.2.1",
+    "langmap": "0.0.*",
     "lodash": "2.4.1",
     "messina": "^0.1.2",
     "moment-timezone": "0.1.0",
@@ -25,8 +26,7 @@
     "sqlite3": "^3.0.0",
     "tzwhere": "^1.0.0",
     "webmaker-auth": "1.0.2",
-    "webmaker-user-client": "0.1.2",
-    "langmap": "0.0.*"
+    "webmaker-user-client": "0.1.2"
   },
   "devDependencies": {
     "faker": "~1.0.0",
@@ -35,8 +35,9 @@
     "grunt": "~0.4.5",
     "grunt-cli": "0.1.13",
     "grunt-contrib-jshint": "~0.10.0",
-    "jit-grunt": "~0.7.0",
     "grunt-jsbeautifier": "~0.2.7",
+    "jit-grunt": "~0.7.0",
+    "mofo-style": "^1.0.1",
     "supertest-session": "0.0.2",
     "superagent": "^0.18.2"
   }
