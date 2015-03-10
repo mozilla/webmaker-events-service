@@ -4,7 +4,7 @@ var _ = require('lodash');
 var bPromise = require('bluebird');
 var Sequelize = require('sequelize');
 var moment = require('moment-timezone');
-var newrelic = require('newrelic');
+var newrelic = require('../util/newrelic');
 
 module.exports = function (db, userClient, eventsFrontendURL) {
 
@@ -737,10 +737,12 @@ module.exports = function (db, userClient, eventsFrontendURL) {
       db.event.create(req.body)
         .then(function (event) { // Event is created
 
+          var userLocale = moment(event.beginDate);
+          userLocale.locale(req.session.user.prefLocale);
+          var eventDate = userLocale.format('LLL');
+
           hatchet.send('create_event', {
-            eventDate: moment(event.beginDate)
-              .lang(req.session.user.prefLocale)
-              .format('LLL'),
+            eventDate: eventDate,
             eventId: event.getDataValue('id'),
             eventTags: tagsToStore,
             eventURL: eventsFrontendURL + '/events/' + event.id,
