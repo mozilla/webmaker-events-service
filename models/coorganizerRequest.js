@@ -1,5 +1,4 @@
 module.exports = function (sequelize, t) {
-
   return sequelize.define('CoorganizerRequests', {
     email: {
       type: t.STRING,
@@ -16,5 +15,4 @@ module.exports = function (sequelize, t) {
       defaultValue: false
     }
   });
-
 };

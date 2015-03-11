@@ -3,13 +3,19 @@ module.exports = function (env, db, userClient) {
   var messina = require('messina')('webmaker-events-service-' + env.get('NODE_ENV'));
   var WebmakerAuth = require('webmaker-auth');
   var routes = require('./routes');
+  var msg;
 
   // Check required config
   if (!env.get('LOGIN_URL')) {
-    console.log('You need to specify LOGIN_URL (The location of the Webmaker login server, e.g. http://localhost:3000) in your .env');
+    msg = 'The location of the Webmaker login server, e.g. http://localhost:3000';
+    msg = 'You need to specify LOGIN_URL (' + msg + ') in your .env';
+    console.log(msg);
   }
+
   if (!env.get('ALLOWED_DOMAINS')) {
-    console.log('You need to specify ALLOWED_DOMAINS (The location of the webmaker-events front-end server, e.g. http://localhost:1981) in your .env');
+    msg = 'The location of the webmaker-events front-end server, e.g. http://localhost:1981';
+    msg = 'You need to specify ALLOWED_DOMAINS (' + msg + ') in your .env';
+    console.log(msg);
   }
 
   var app = express();

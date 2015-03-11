@@ -14,18 +14,18 @@ var userClient = new WebmakerUserClient({
   endpoint: env.get('LOGIN_URL_WITH_AUTH')
 });
 var db = require('../models')(env.get('db'), env.get('EVENTS_FRONTEND_URL'), userClient);
-var q = async.queue(function (event, q_callback) {
-  userClient.get.byEmail(event.organizer, function (login_error, user) {
-    if (login_error) {
-      login_error.from = 'Error from user client';
-      return q_callback(login_error);
+var q = async.queue(function (event, callback) {
+  userClient.get.byEmail(event.organizer, function (loginError, user) {
+    if (loginError) {
+      loginError.from = 'Error from user client';
+      return callback(loginError);
     }
 
     // User deleted their account, so mark the reminder as sent
     if (!user || user.error) {
       event.updateAttributes({
         sentPostEventEmailToHost: true
-      }, ['sentPostEventEmailToHost']).complete(q_callback);
+      }, ['sentPostEventEmailToHost']).complete(callback);
       return;
     }
 
@@ -35,15 +35,15 @@ var q = async.queue(function (event, q_callback) {
       userId: user.user.id,
       username: user.user.username,
       eventURL: event.url
-    }, function (hatchet_error) {
-      if (hatchet_error) {
-        hatchet_error.from = 'Error from hatchet';
-        return q_callback(hatchet_error);
+    }, function (hatchetError) {
+      if (hatchetError) {
+        hatchetError.from = 'Error from hatchet';
+        return callback(hatchetError);
       }
 
       event.updateAttributes({
         sentPostEventEmailToHost: true
-      }, ['sentPostEventEmailToHost']).complete(q_callback);
+      }, ['sentPostEventEmailToHost']).complete(callback);
     });
   });
 }, 1);

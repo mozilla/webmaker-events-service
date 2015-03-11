@@ -1,5 +1,4 @@
 module.exports = function (sequelize, t) {
-
   return sequelize.define('Mentor', {
     bio: {
       type: t.STRING
@@ -18,5 +17,4 @@ module.exports = function (sequelize, t) {
       }
     }
   });
-
 };

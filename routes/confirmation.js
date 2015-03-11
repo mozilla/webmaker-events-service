@@ -53,7 +53,6 @@ module.exports = function (db, userClient) {
           }
         })
         .error(next);
-
     },
     verify: function (req, res, next) {
       var token = req.params.token;

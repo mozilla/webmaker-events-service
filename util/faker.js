@@ -49,11 +49,13 @@ module.exports = function () {
 
   self.session = function (isAdmin, isMentor, isSupermentor) {
     var email = faker.Internet.email();
+    var hash = 'bf2af31baeacda7ffdc4b3523047f94c';
+    var iconurl = 'https%3A%2F%2Fstuff.webmaker.org%2Favatars%2Fwebmaker-avatar-200x200.png';
     return {
       user: {
-        avatar: 'https://secure.gravatar.com/avatar/bf2af31baeacda7ffdc4b3523047f94c?d=https%3A%2F%2Fstuff.webmaker.org%2Favatars%2Fwebmaker-avatar-200x200.png',
+        avatar: 'https://secure.gravatar.com/avatar/' + hash + '?d=' + iconurl,
         email: email,
-        emailHash: 'bf2af31baeacda7ffdc4b3523047f94c',
+        emailHash: hash,
         id: 1,
         isAdmin: !!isAdmin,
         isMentor: !!isMentor,
@@ -66,5 +68,4 @@ module.exports = function () {
       email: email
     };
   };
-
 };

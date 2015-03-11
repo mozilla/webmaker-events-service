@@ -30,15 +30,16 @@
   },
   "devDependencies": {
     "faker": "~1.0.0",
-    "should": "~2.1.1",
-    "supertest": "~0.8.3",
     "grunt": "~0.4.5",
     "grunt-cli": "0.1.13",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-jsbeautifier": "~0.2.7",
+    "grunt-jscs": "^1.5.0",
     "jit-grunt": "~0.7.0",
     "mofo-style": "^1.0.1",
-    "supertest-session": "0.0.2",
-    "superagent": "^0.18.2"
+    "should": "~2.1.1",
+    "superagent": "^0.18.2",
+    "supertest": "~0.8.3",
+    "supertest-session": "0.0.2"
   }
 }

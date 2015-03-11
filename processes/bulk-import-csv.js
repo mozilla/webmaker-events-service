@@ -1,3 +1,4 @@
+// jscs:disable
 /*
  **
  ** bulk-import-csv.js
@@ -15,6 +16,7 @@
  ** You must either remove or fix the broken event.
  **
  */
+// jscs:enable
 
 var csv = require('csv');
 var fs = require('fs');
@@ -85,7 +87,8 @@ function verifyUser(data, callback) {
     if (!fetchedUsers[event.organizerUsername]) {
       userClient.get.byUsername(event.organizerUsername, function (err, resp) {
         if (err || !resp || !resp.user) {
-          console.error(new Error(err ? err : 'Username (' + event.organizerUsername + ') is invalid or could not be found'));
+          err = new Error(err ? err : 'Username (' + event.organizerUsername + ') is invalid or could not be found');
+          console.error(err);
           process.exit(1);
         }
         event.organizer = resp.user.email;
@@ -148,7 +151,7 @@ function mapFields(data, callback) {
     eventData.length = eventData.length === 'unknown' ? 0 : +eventData.length;
 
     eventData.beginDate = new Date(eventData.beginDate);
-    eventData.endDate = new Date((new Date(eventData.beginDate)).setHours(eventData.beginDate.getHours() + eventData.length));
+    eventData.endDate = new Date(eventData.beginDate).setHours(eventData.beginDate.getHours() + eventData.length);
     eventData.ageGroup = eventData.ageGroup === 'any' ? '' : eventData.ageGroup;
     eventData.skillLevel = eventData.skillLevel === 'any' ? '' : eventData.skillLevel;
 
@@ -215,7 +218,7 @@ function create(data, callback) {
                 }
               });
             });
-          //return storeTags(eventData.tags, transaction);
+          // return storeTags(eventData.tags, transaction);
         })
         .then(function (tags) {
           tagsDAOS = tags;

@@ -1,5 +1,4 @@
 module.exports = function (sequelize, t) {
-
   return sequelize.define('Attendee', {
     userID: {
       type: t.INTEGER,
@@ -32,5 +31,4 @@ module.exports = function (sequelize, t) {
       defaultValue: false
     }
   });
-
 };

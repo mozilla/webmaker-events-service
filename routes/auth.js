@@ -1,7 +1,5 @@
 module.exports = function (env) {
-
   return {
-
     // Protect dev-only routes
     dev: function (req, res, next) {
       if (!env.get('dev')) {
@@ -25,7 +23,5 @@ module.exports = function (env) {
       }
       next();
     }
-
   };
-
 };

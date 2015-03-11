@@ -369,7 +369,7 @@ exports.config = {
      * behavior. You probably want at least double the value, but more is okay
      * as long as you can handle the memory overhead.
      */
-    max_samples_stored: 20000,
+    max_samples_stored: 20000
   },
 
   /**

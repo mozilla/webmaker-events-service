@@ -31,5 +31,4 @@ module.exports = function (env, db) {
         next(err);
       });
   };
-
 };

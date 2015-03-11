@@ -27,10 +27,11 @@ module.exports = function (db, userClient) {
               coorganizers.push(coorg.dataValues.userId);
             });
 
-            var isAuthorizedConsumer = (user && (user.isAdmin || user.username === eventData.organizerId || coorganizers.indexOf(user.id) > -1));
+            var isOrganizer = user.username === eventData.organizerId;
+            var isCoorganizer = coorganizers.indexOf(user.id) > -1;
+            var isAuthorizedConsumer = (user && (user.isAdmin || isOrganizer || isCoorganizer));
 
             if (eventData.areAttendeesPublic || isAuthorizedConsumer) {
-
               var userIDs = [];
               var userHash = {};
               var unregisteredUsers = [];
@@ -100,7 +101,6 @@ module.exports = function (db, userClient) {
             }, function failure(err) {
               res.send(500);
             });
-
         } else {
           res.send(401, 'Not authorized.');
         }
@@ -135,10 +135,9 @@ module.exports = function (db, userClient) {
           if (!event) {
             res.send(404);
           }
-
           eventData = event.dataValues;
-
-          if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID || req.session.user.username === eventData.organizerId)) {
+          var isOrganizer = req.session.user.username === eventData.organizerId;
+          if (req.session.user && (req.session.user.isAdmin || req.session.user.id === userID || isOrganizer)) {
             // Make sure the event exists first
             db.event
               .find({
@@ -211,18 +210,15 @@ module.exports = function (db, userClient) {
 
                   res.send('Record already exists. Updating.');
                 }
-
               }, function failure(err) {
                 res.send(500, 'Error.');
               });
-
           } else {
             res.send(401);
           }
         }, function fail() {
           res.send(500);
         });
-
     }
   };
 };

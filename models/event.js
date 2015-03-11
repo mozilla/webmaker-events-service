@@ -1,5 +1,4 @@
 module.exports = function (sequelize, t) {
-
   var defaultGravatar = encodeURIComponent('https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png');
   var _ = require('lodash');
   var md5 = require('MD5');
@@ -48,7 +47,7 @@ module.exports = function (sequelize, t) {
       validate: {
         isFloat: true,
         min: -90.0,
-        max: 90.0,
+        max: 90.0
       },
       allowNull: true,
       defaultValue: null
@@ -61,7 +60,7 @@ module.exports = function (sequelize, t) {
         max: 180.0
       },
       allowNull: true,
-      defaultValue: null,
+      defaultValue: null
     },
     city: t.STRING,
     country: t.STRING,
@@ -185,7 +184,7 @@ module.exports = function (sequelize, t) {
         return 'https://secure.gravatar.com/avatar/' +
           md5(this.getDataValue('organizer')) +
           '?d=' + defaultGravatar;
-      },
+      }
     },
     instanceMethods: {
       isCoorganizer: function (userId) {
@@ -195,7 +194,7 @@ module.exports = function (sequelize, t) {
       },
       toFilteredJSON: function (showPrivate) {
         // This is gross but necessary:
-        // http://stackoverflow.com/questions/24431213/get-only-values-from-rows-and-associations-with-sequelize#comment37831440_24431213
+        // http://stackoverflow.com/questions/24431213/#comment37831440_24431213
         var event = JSON.parse(JSON.stringify(this));
 
         // return tags as ["a"] instead of [{"name": "a"}]
