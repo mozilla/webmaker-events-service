@@ -1,5 +1,4 @@
 module.exports = function (sequelize, t) {
-
   return sequelize.define('Coorganizer', {
     userId: {
       type: t.INTEGER,
@@ -20,5 +19,4 @@ module.exports = function (sequelize, t) {
       }
     }
   });
-
 };

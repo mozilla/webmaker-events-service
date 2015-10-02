@@ -1,13 +1,12 @@
 var hatchet = require('hatchet');
 var json2csv = require('json2csv');
 var _ = require('lodash');
-var bPromise = require('bluebird');
+var BBPromise = require('bluebird');
 var Sequelize = require('sequelize');
 var moment = require('moment-timezone');
-var newrelic = require('newrelic');
+var newrelic = require('../util/newrelic');
 
 module.exports = function (db, userClient, eventsFrontendURL) {
-
   /**
    * De-dupe and lowercase groups of tags
    * @param  {Array} tags An array of tags as Strings
@@ -33,7 +32,7 @@ module.exports = function (db, userClient, eventsFrontendURL) {
    */
 
   function storeTags(tagsToStore) {
-    return new bPromise(function (resolve, reject) {
+    return new BBPromise(function (resolve, reject) {
       if (!tagsToStore || !tagsToStore.length) {
         resolve.call(null, []);
       }
@@ -82,8 +81,7 @@ module.exports = function (db, userClient, eventsFrontendURL) {
   }
 
   function createAssociations(event, type, instances) {
-    return new bPromise(function (resolve, reject) {
-
+    return new BBPromise(function (resolve, reject) {
       if (!instances) {
         return resolve.call(null, event);
       }
@@ -211,7 +209,6 @@ module.exports = function (db, userClient, eventsFrontendURL) {
    * @param {Number} radius - radius (Kilometres)
    */
   function getBoundingCoordinates(lat, lng, radius) {
-
     // The radius of the Earth in Kilometres
     var earthsRadius = 6371;
 
@@ -222,18 +219,19 @@ module.exports = function (db, userClient, eventsFrontendURL) {
       maxLat: lat + latValue,
       maxLng: lng + lngValue,
       minLat: lat - latValue,
-      minLng: lng - lngValue,
+      minLng: lng - lngValue
     };
   }
 
+  // jscs:disable
   var MAX_EVENTS_RETURNED = 100;
   var COUNT_SQL_QUERY = 'SELECT COUNT(*) AS `count` FROM `Events`';
   var DATA_SQL_QUERY = 'SELECT `Events`.`id` FROM `Events`';
   var JOIN_COORGANIZERS_AND_MENTORS = ' LEFT JOIN `Coorganizers` ON `Events`.`id` = `Coorganizers`.`EventId` AND `Coorganizers`.`userId` = :userId LEFT JOIN `Mentors` ON `Events`.`id` = `Mentors`.`EventId` AND `Mentors`.`userId` = :userId';
   var JOIN_TAGS = ' JOIN `EventsTags` ON `Events`.`id` = `EventsTags`.`EventId` JOIN `Tags` ON `EventsTags`.`TagId` = `Tags`.`id` AND `Tags`.`name` = :tag';
+  // jscs:enable
 
   var controller = {
-
     get: {
       csv: function (req, res) {
         req.query.csv = true;
@@ -267,7 +265,7 @@ module.exports = function (db, userClient, eventsFrontendURL) {
         var rangeEnd = MAX_EVENTS_RETURNED - 1;
         var beforeDate;
         var afterDate;
-        var timing_segment;
+        var timingSegment;
 
         // Attempt to parse date strings into objects:
 
@@ -385,17 +383,18 @@ module.exports = function (db, userClient, eventsFrontendURL) {
         newrelic.addCustomParameter('record_end', rangeEnd);
         newrelic.addCustomParameter('limit', limit);
 
-        timing_segment = Date.now();
+        timingSegment = Date.now();
 
-        (username ? userClient.get.byUsernameAsync(username) : bPromise.resolve())
+        (username ? userClient.get.byUsernameAsync(username) : BBPromise.resolve())
         .then(function (userData) {
-            var count_query = COUNT_SQL_QUERY;
-            var data_query = DATA_SQL_QUERY;
+            var countQuery = COUNT_SQL_QUERY;
+            var dataQuery = DATA_SQL_QUERY;
+            var queryGenerator = db.sequelize.queryInterface.QueryGenerator;
 
             if (userData && userData.error) {
-              var user_not_found_error = new Error(userData.error);
-              user_not_found_error.statusCode = 404;
-              return bPromise.reject(user_not_found_error);
+              var userNotFoundError = new Error(userData.error);
+              userNotFoundError.statusCode = 404;
+              return BBPromise.reject(userNotFoundError);
             }
 
             if (userData) {
@@ -412,55 +411,53 @@ module.exports = function (db, userClient, eventsFrontendURL) {
               );
               replacements.userId = userID;
 
-              count_query += JOIN_COORGANIZERS_AND_MENTORS;
-              data_query += JOIN_COORGANIZERS_AND_MENTORS;
+              countQuery += JOIN_COORGANIZERS_AND_MENTORS;
+              dataQuery += JOIN_COORGANIZERS_AND_MENTORS;
 
-              newrelic.addCustomParameter('username_search', Date.now() - timing_segment);
+              newrelic.addCustomParameter('username_search', Date.now() - timingSegment);
             }
 
             if (tagFilter) {
               replacements.tag = tagFilter;
-
-              count_query += JOIN_TAGS;
-              data_query += JOIN_TAGS;
-
+              countQuery += JOIN_TAGS;
+              dataQuery += JOIN_TAGS;
             }
 
             if (whereEvents.length > 0) {
-              var where_conditions = ' WHERE ' + db.sequelize.queryInterface.QueryGenerator.getWhereConditions(whereEvents);
-              count_query += where_conditions;
-              data_query += where_conditions;
+              var whereConditions = ' WHERE ' + queryGenerator.getWhereConditions(whereEvents);
+              countQuery += whereConditions;
+              dataQuery += whereConditions;
             }
 
-            data_query += ' ORDER BY ' + order;
+            dataQuery += ' ORDER BY ' + order;
             if (limit) {
-              data_query += db.sequelize.queryInterface.QueryGenerator.addLimitAndOffset({
+              dataQuery += queryGenerator.addLimitAndOffset({
                 limit: limit,
                 offset: rangeStart
               });
             }
 
-            timing_segment = Date.now();
+            timingSegment = Date.now();
 
-            return bPromise.join(
-              db.sequelize.query(count_query, null, {
+            return BBPromise.join(
+              db.sequelize.query(countQuery, null, {
                 raw: true
               }, replacements),
-              db.sequelize.query(data_query, null, {
+              db.sequelize.query(dataQuery, null, {
                 raw: true
               }, replacements)
             );
           })
-          .spread(function (count_results, data_results) {
-            newrelic.addCustomParameter('db:metadata', Date.now() - timing_segment);
+          .spread(function (countResults, dataResults) {
+            newrelic.addCustomParameter('db:metadata', Date.now() - timingSegment);
 
-            eventCount = count_results[0].count;
-            timing_segment = Date.now();
+            eventCount = countResults[0].count;
+            timingSegment = Date.now();
 
             return db.event.findAll({
               order: order,
               where: {
-                id: _.pluck(data_results, 'id')
+                id: _.pluck(dataResults, 'id')
               },
               include: [{
                 model: db.coorg,
@@ -475,7 +472,7 @@ module.exports = function (db, userClient, eventsFrontendURL) {
             });
           })
           .then(function (events) {
-            newrelic.addCustomParameter('db:results', Date.now() - timing_segment);
+            newrelic.addCustomParameter('db:results', Date.now() - timingSegment);
 
             // Don't return multiple events with the same title when dedupe is enabled
             if (dedupe) {
@@ -545,7 +542,32 @@ module.exports = function (db, userClient, eventsFrontendURL) {
 
                 json2csv({
                   data: flattenedData,
-                  fields: ['id', 'title', 'description', 'address', 'latitude', 'longitude', 'city', 'country', 'estimatedAttendees', 'beginDate', 'endDate', 'registerLink', 'organizer', 'organizerId', 'createdAt', 'updatedAt', 'areAttendeesPublic', 'ageGroup', 'skillLevel', 'isEmailPublic', 'externalSource', 'coorganizers', 'mentors', 'tags']
+                  fields: [
+                    'id',
+                    'title',
+                    'description',
+                    'address',
+                    'latitude',
+                    'longitude',
+                    'city',
+                    'country',
+                    'estimatedAttendees',
+                    'beginDate',
+                    'endDate',
+                    'registerLink',
+                    'organizer',
+                    'organizerId',
+                    'createdAt',
+                    'updatedAt',
+                    'areAttendeesPublic',
+                    'ageGroup',
+                    'skillLevel',
+                    'isEmailPublic',
+                    'externalSource',
+                    'coorganizers',
+                    'mentors',
+                    'tags'
+                  ]
                 }, function (err, csv) {
                   if (err) {
                     console.error(err.stack);
@@ -643,7 +665,6 @@ module.exports = function (db, userClient, eventsFrontendURL) {
 
               res.json(event.toFilteredJSON(showPrivateData));
             });
-
           }, function error(err) {
             res.json(500, err);
           });
@@ -736,11 +757,12 @@ module.exports = function (db, userClient, eventsFrontendURL) {
 
       db.event.create(req.body)
         .then(function (event) { // Event is created
+          var userLocale = moment(event.beginDate);
+          userLocale.locale(req.session.user.prefLocale);
+          var eventDate = userLocale.format('LLL');
 
           hatchet.send('create_event', {
-            eventDate: moment(event.beginDate)
-              .lang(req.session.user.prefLocale)
-              .format('LLL'),
+            eventDate: eventDate,
             eventId: event.getDataValue('id'),
             eventTags: tagsToStore,
             eventURL: eventsFrontendURL + '/events/' + event.id,
@@ -800,7 +822,6 @@ module.exports = function (db, userClient, eventsFrontendURL) {
           ]
         })
         .success(function (eventInstance) {
-
           // No event
           if (!eventInstance) {
             return res.send(404, 'No event found for id ' + id);
@@ -856,7 +877,7 @@ module.exports = function (db, userClient, eventsFrontendURL) {
             })
             .then(function () {
               if (eventInstance.mentors.length) {
-                return bPromise.all(
+                return BBPromise.all(
                   eventInstance.mentors.map(function (mentor) {
                     return mentor.save(['bio']);
                   })
@@ -906,7 +927,6 @@ module.exports = function (db, userClient, eventsFrontendURL) {
       db.event
         .find(id)
         .success(function (eventInstance) {
-
           // No event
           if (!eventInstance) {
             return res.send(404, 'No event found for id ' + id);
@@ -948,5 +968,4 @@ module.exports = function (db, userClient, eventsFrontendURL) {
   };
 
   return controller;
-
 };

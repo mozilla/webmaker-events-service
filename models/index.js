@@ -2,7 +2,6 @@ var Sequelize = require('sequelize');
 var hatchet = require('hatchet');
 
 module.exports = function (options, eventsUrl, userClient, callback) {
-
   options = options || {};
 
   var sequelize;
@@ -76,18 +75,17 @@ module.exports = function (options, eventsUrl, userClient, callback) {
   });
 
   Coorg.hook('beforeBulkCreate', function (records, fields, callback) {
-
     var usernames = records.map(function (coorg) {
       return coorg._username;
     });
 
-    var event_ids = records.map(function (coorg) {
+    var eventIds = records.map(function (coorg) {
       return coorg.EventId;
     });
 
     Event.findAll({
         where: {
-          id: event_ids
+          id: eventIds
         }
       })
       .then(function (events) {
@@ -120,7 +118,7 @@ module.exports = function (options, eventsUrl, userClient, callback) {
               eventName: eventsById[coorg.EventId].title,
               eventUrl: eventsUrl + '/events/' + coorg.EventId,
               eventEditUrl: eventsUrl + '/edit/' + coorg.EventId,
-              locale: user.prefLocale,
+              locale: user.prefLocale
             };
             hatchet.send('event_coorganizer_added', data);
           });
@@ -134,13 +132,13 @@ module.exports = function (options, eventsUrl, userClient, callback) {
       return request.email;
     });
 
-    var event_ids = records.map(function (request) {
+    var eventIds = records.map(function (request) {
       return request.EventId;
     });
 
     Event.findAll({
         where: {
-          id: event_ids
+          id: eventIds
         }
       })
       .then(function (events) {
@@ -162,6 +160,18 @@ module.exports = function (options, eventsUrl, userClient, callback) {
           records.forEach(function (request) {
             var user = usersByEmail[request.email];
 
+            var confirm = function (yesno) {
+              return [
+                eventsUrl,
+                '/confirm/mentor/',
+                request.token,
+                '?confirmation=',
+                yesno,
+                '&eventId=',
+                request.EventId
+              ].join('');
+            };
+
             hatchet.send('event_mentor_confirmation_email', {
               sendEmail: user ? user.sendMentorRequestEmails : true,
               username: user && user.username,
@@ -170,8 +180,8 @@ module.exports = function (options, eventsUrl, userClient, callback) {
               eventUrl: eventsUrl + '/events/' + request.EventId,
               organizerUsername: eventsById[request.EventId].organizerId,
               locale: user && user.prefLocale,
-              confirmUrlYes: eventsUrl + '/confirm/mentor/' + request.token + '?confirmation=yes&eventId=' + request.EventId,
-              confirmUrlNo: eventsUrl + '/confirm/mentor/' + request.token + '?confirmation=no&eventId=' + request.EventId
+              confirmUrlYes: confirm('yes'),
+              confirmUrlNo: confirm('no')
             });
           });
 
@@ -191,5 +201,4 @@ module.exports = function (options, eventsUrl, userClient, callback) {
     mentorRequest: MentorRequest,
     tag: Tag
   };
-
 };

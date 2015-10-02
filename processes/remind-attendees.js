@@ -18,10 +18,10 @@ var userClient = new WebmakerUserClient({
 });
 var db = require('../models')(env.get('db'), env.get('EVENTS_FRONTEND_URL'), userClient);
 var q = async.queue(function (attendee, callback) {
-  userClient.get.byId(attendee.userID, function (login_error, user) {
-    if (login_error) {
-      login_error.from = 'Error from user client';
-      return callback(login_error);
+  userClient.get.byId(attendee.userID, function (loginError, user) {
+    if (loginError) {
+      loginError.from = 'Error from user client';
+      return callback(loginError);
     }
 
     // User deleted their account, so mark the reminder as sent
@@ -54,10 +54,10 @@ var q = async.queue(function (attendee, callback) {
       eventURL: attendee.event.url,
       organizerEmail: attendee.event.isEmailPublic ? attendee.event.organizer : null,
       organizerUsername: attendee.event.organizerId
-    }, function (hatchet_error) {
-      if (hatchet_error) {
-        hatchet_error.from = 'Error from hatchet';
-        return callback(hatchet_error);
+    }, function (hatchetError) {
+      if (hatchetError) {
+        hatchetError.from = 'Error from hatchet';
+        return callback(hatchetError);
       }
 
       attendee.updateAttributes({

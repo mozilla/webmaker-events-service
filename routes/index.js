@@ -1,5 +1,4 @@
 module.exports = function (env, app, models, userClient) {
-
   var events = require('./event-controller')(models, userClient, env.get('EVENTS_FRONTEND_URL'));
   var dev = require('./dev-controller')(models);
   var attendee = require('./attendee-controller.js')(models, userClient);

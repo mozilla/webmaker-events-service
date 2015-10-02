@@ -1,5 +1,5 @@
 var Habitat = require('habitat');
-var bPromise = require('bluebird');
+var BBPromise = require('bluebird');
 var async = require('async');
 
 Habitat.load();
@@ -31,13 +31,15 @@ db.event.findAll({
     return arr.indexOf(tag) === pos;
   });
 }).then(function () {
-  return new bPromise(function (resolve, reject) {
+  return new BBPromise(function (resolve, reject) {
     userClient.get.byEmails(emails, function (err, data) {
       if (err) {
         return reject.call(null, err);
       }
       if (!data || !data.users || !data.users.length) {
-        return reject.call(null, new Error('No user data was returned for: [' + emails.join(', ') + '] - They may be deleted accounts.'));
+        var addresses = emails.join(', ');
+        var err = new Error('No user data was returned for: [' + addresses + '] - They may be deleted accounts.');
+        return reject.call(null, err);
       }
       data.users.forEach(function (u) {
         usersByEmail[u.email] = u;
@@ -49,7 +51,7 @@ db.event.findAll({
   console.error(err.toString());
   process.exit(1);
 }).then(function () {
-  return new bPromise(function (resolve, reject) {
+  return new BBPromise(function (resolve, reject) {
     db.sequelize.transaction(function (t) {
       transaction = t;
       async.eachSeries(events, function (event, done) {

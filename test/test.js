@@ -8,7 +8,6 @@ var Faker = require('../util/faker');
 var faker = new Faker();
 
 describe('faker', function () {
-
   it('should have event, invalidEvent and events methods', function (done) {
     should.exist(faker.event);
     should.exist(faker.invalidEvent);
@@ -34,13 +33,11 @@ describe('faker', function () {
     (eArray).should.be.an.Array.and.have.property('length', 7);
     done();
   });
-
 });
 
 // TODO: Test mysql, connection string options for models
 
 describe('app', function () {
-
   // TODO: Re-run the server every time with a fresh db so no state problems occur
   // Server and db config
   Habitat.load('.env-test');
